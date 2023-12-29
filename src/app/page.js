@@ -7,7 +7,7 @@ import { fabric } from "fabric";
 export default function Home() {
   return (
     <p>
-      <Link href={"draw"}>スタート</Link>
+      <Link href={"draw"}>ゲームスタート</Link>
     </p>
   );
 }
