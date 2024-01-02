@@ -15,82 +15,80 @@ export default function Page() {
   const ws = new WebSocket("ws://localhost:3001");
   //メディア処理
   const canvas = canvasRef.current;
-    if (canvas) {
-      const stream = canvas.captureStream(30); // 30はフレームレートです。適宜変更可能
-      // ... ここで stream を使用するコード
-      ws.onopen = () => {
-        console.log("Connected to the signaling server");
-    
-        // RTCPeerConnectionの設定
-        const peerConnection = new RTCPeerConnection();
-    
-        // ontrackイベントハンドラの設定
-        peerConnection.ontrack = (event) => {
-          // HTML内にあるvideo要素を取得または作成
-          let remoteVideo =
-            document.getElementById("remoteVideo") ||
-            document.createElement("video");
-          // video要素がまだbodyに追加されていなければ追加する
-          if (!remoteVideo.parentNode) {
-            document.body.appendChild(remoteVideo);
-          }
-          // trackがvideoトラックであればvideo要素に設定する
-          if (event.track.kind === "video") {
-            remoteVideo.srcObject = event.streams[0];
-          }
-        };
-        //RTCPeerConnectionの設定
-        stream.getTracks().forEach((track) => {
-          peerConnection.addTrack(track, stream);
-        });
-        //シグナリングのイベントハンドラーの設定
-        ws.onmessage = (message) => {
-          const data = JSON.parse(message.data);
-          if (!data) {
-            return; // データが無効の場合は早期リターン
-          }
-          switch (data.type) {
-            case "offer":
-              const receivedOffer = data.offer;
-              peerConnection
-                .setRemoteDescription(receivedOffer)
-                .then(() => peerConnection.createAnswer())
-                .then((answer) => peerConnection.setLocalDescription(answer))
-                .then(() => {
-                  ws.send(
-                    JSON.stringify({
-                      type: "answer",
-                      answer: peerConnection.localDescription,
-                    })
-                  );
-                });
-              break;
-            case "answer":
-              //これはオファラー側には不要です
-              break;
-            case "candidate":
-              peerConnection
-                .addIceCandidate(new RTCIceCandidate(data.candidate))
-                .catch((e) => console.error(e));
-              break;
-          }
-        };
-        //OfferとAnswerの交換、ICE候補の交換
-        peerConnection
-          .createOffer()
-          .then((offer) => {
-            return peerConnection.setLocalDescription(offer);
+  const stream = canvas.captureStream(30); // 30はフレームレートです。適宜変更可能
+  // ... ここで stream を使用するコード
+  ws.onopen = () => {
+    console.log("Connected to the signaling server");
+
+    // RTCPeerConnectionの設定
+    const peerConnection = new RTCPeerConnection();
+
+    // ontrackイベントハンドラの設定
+    peerConnection.ontrack = (event) => {
+      // HTML内にあるvideo要素を取得または作成
+      let remoteVideo =
+        document.getElementById("remoteVideo") ||
+        document.createElement("video");
+      // video要素がまだbodyに追加されていなければ追加する
+      if (!remoteVideo.parentNode) {
+        document.body.appendChild(remoteVideo);
+      }
+      // trackがvideoトラックであればvideo要素に設定する
+      if (event.track.kind === "video") {
+        remoteVideo.srcObject = event.streams[0];
+      }
+    };
+    //RTCPeerConnectionの設定
+    stream.getTracks().forEach((track) => {
+      peerConnection.addTrack(track, stream);
+    });
+    //シグナリングのイベントハンドラーの設定
+    ws.onmessage = (message) => {
+      const data = JSON.parse(message.data);
+      if (!data) {
+        return; // データが無効の場合は早期リターン
+      }
+      switch (data.type) {
+        case "offer":
+          const receivedOffer = data.offer;
+          peerConnection
+            .setRemoteDescription(receivedOffer)
+            .then(() => peerConnection.createAnswer())
+            .then((answer) => peerConnection.setLocalDescription(answer))
+            .then(() => {
+              ws.send(
+                JSON.stringify({
+                  type: "answer",
+                  answer: peerConnection.localDescription,
+                })
+              );
+            });
+          break;
+        case "answer":
+          //これはオファラー側には不要です
+          break;
+        case "candidate":
+          peerConnection
+            .addIceCandidate(new RTCIceCandidate(data.candidate))
+            .catch((e) => console.error(e));
+          break;
+      }
+    };
+    //OfferとAnswerの交換、ICE候補の交換
+    peerConnection
+      .createOffer()
+      .then((offer) => {
+        return peerConnection.setLocalDescription(offer);
+      })
+      .then(() => {
+        ws.send(
+          JSON.stringify({
+            type: "offer",
+            offer: peerConnection.localDescription,
           })
-          .then(() => {
-            ws.send(
-              JSON.stringify({
-                type: "offer",
-                offer: peerConnection.localDescription,
-              })
-            );
-          });
-      };
-    }
+        );
+      });
+  };
 
   // canvas に描いたストロークの座標情報をすべて保存
   const [allStrokes, setAllStrokes] = useState({
