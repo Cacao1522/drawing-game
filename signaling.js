@@ -1,4 +1,5 @@
 // ポート番号は必要に応じて変更してください。起動するにはコマンドプロンプト/ターミナルから、 次のコマンドを実行します。 
+//npm install ws
 // node signaling.js
 
 "use strict";
