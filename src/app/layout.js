@@ -1,5 +1,5 @@
 import { Inter } from "next/font/google";
-import "./globals.css";
+// import "./globals.css";使うときにコメントアウトを外す
 
 const inter = Inter({ subsets: ["latin"] });
 

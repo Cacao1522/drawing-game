@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import styles from "./page.module.css";
+// import styles from "./page.module.css";使うときにコメントアウトを外す
 //import { Canvas } from "fabric/fabric-impl";
 
 export default function Home() {
