@@ -22,7 +22,7 @@ export default function Page() {
     switch (data.type) {
       case "offer":
         peerConnection
-          .setRemoteDescription(new RTCSessionDescription(data.offer))
+          .setRemoteDescription(new RTCSessionDescription(data.offer)) // data.offerを利用
           .then(() => peerConnection.createAnswer())
           .then((answer) => peerConnection.setLocalDescription(answer))
           .then(() =>
@@ -48,23 +48,7 @@ export default function Page() {
     }
   };
   //OfferとAnswerの交換、ICE候補の交換
-  // Offerを受け取った場合の処理
-  peerConnection
-    .setRemoteDescription(new RTCSessionDescription(offer))
-    .then(() => {
-      return peerConnection.createAnswer();
-    })
-    .then((answer) => {
-      return peerConnection.setLocalDescription(answer);
-    })
-    .then(() => {
-      ws.send(
-        JSON.stringify({
-          type: "answer",
-          answer: peerConnection.localDescription,
-        })
-      );
-    });
+
   // キャンバスエレメントを作成
   const canvasElement = document.createElement("canvas");
   canvasElement.id = "remoteCanvas";
