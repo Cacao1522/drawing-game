@@ -4,8 +4,13 @@ import styles from "./page.module.css";
 
 export default function Home() {
   return (
-    <p>
-      <Link href={"draw"}>ゲームスタート</Link>
-    </p>
+    <>
+      <p>
+        <Link href={"draw"}>ゲームスタート（絵を描く）</Link>
+      </p>
+      <p>
+        <Link href={"guess"}>ゲームスタート（絵のお題を当てる）</Link>
+      </p>
+    </>
   );
 }
