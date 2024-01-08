@@ -34,7 +34,6 @@ export default function Page() {
 
   // ページ読み込み時に呼び出す関数
   window.onload = function () {
-    document.getElementById("status").value = "closed";
   };
 
   // 新しい RTCPeerConnection を作成する
@@ -47,29 +46,11 @@ export default function Page() {
         // 一部の ICE candidate を取得
         // Trickle ICE では ICE candidate を相手に通知する
         console.log(evt.candidate);
-        document.getElementById("status").value = "Collecting ICE candidates";
       } else {
         // 全ての ICE candidate の取得完了（空の ICE candidate イベント）
         // Vanilla ICE では，全てのICE candidate を含んだ SDP を相手に通知する
         // （SDP は pc.localDescription.sdp で取得できる）
         // 今回は手動でシグナリングするため textarea に SDP を表示する
-        document.getElementById("localSDP").value = pc.localDescription.sdp;
-        document.getElementById("status").value = "Vanilla ICE ready";
-      }
-    };
-
-    pc.onconnectionstatechange = function (evt) {
-      switch (pc.connectionState) {
-        case "connected":
-          document.getElementById("status").value = "connected";
-          break;
-        case "disconnected":
-        case "failed":
-          document.getElementById("status").value = "disconnected";
-          break;
-        case "closed":
-          document.getElementById("status").value = "closed";
-          break;
       }
     };
 
@@ -111,7 +92,6 @@ export default function Page() {
         console.error("setLocalDescription() failed.", err);
       });
 
-    document.getElementById("status").value = "offer created";
   }
 
   // Data channel のイベントハンドラを定義する
@@ -183,7 +163,6 @@ export default function Page() {
         .catch(function (err) {
           console.error("setLocalDescription() failed.", err);
         });
-      document.getElementById("status").value = "answer created";
     }
   }
 
@@ -256,6 +235,7 @@ export default function Page() {
       <label>
         入力してください :
         <input
+          id="inputText"
           type="text"
           size="20"
           className={styles.inputText}
