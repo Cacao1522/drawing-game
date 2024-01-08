@@ -1,14 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
-// import styles from "./page.module.css";使うときにコメントアウトを外す
-//import { Canvas } from "fabric/fabric-impl";
+import styles from "./page.module.css";
 
 export default function Home() {
   return (
+    <>
       <p>
-        <Link href={"draw"}>ゲームスタート</Link>
-        <br />
-        <Link href={"answer"}>回答スタート</Link>
+        <Link href={"draw"}>ゲームスタート（絵を描く）</Link>
       </p>
+      <p>
+        <Link href={"guess"}>ゲームスタート（絵のお題を当てる）</Link>
+      </p>
+    </>
   );
 }

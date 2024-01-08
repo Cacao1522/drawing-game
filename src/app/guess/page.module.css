@@ -1,0 +1,22 @@
+.animationContainer {
+  overflow: hidden;
+  white-space: nowrap;
+  border: 1px solid #000;
+  width: 800px; /* 幅を800pxに設定 */
+  height: 400px; /* 高さを400pxに設定 */
+}
+.movingText {
+  display: inline-block;
+  white-space: nowrap;
+  animation: moveLeft 10s linear forwards; /* 'forwards' stops the animation at the end */
+  position: relative; /* 追加：positionを指定 */
+}
+@keyframes moveLeft {
+  0% {
+    left: 800px; /* 初期位置を右端に設定 */
+  }
+
+  100% {
+    left: -200px; /* 終了位置を左端に設定 */
+  }
+}
