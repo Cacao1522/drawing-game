@@ -12,6 +12,7 @@ console.log("websocket server start. port=" + port);
 wsServer.on("connection", function (ws) {
   console.log("-- websocket connected --");
   ws.on("message", function (message) {
+    console.log("received message=" + message);
     wsServer.clients.forEach(function each(client) {
       if (isSame(ws, client)) {
         console.log("- skip sender -");
