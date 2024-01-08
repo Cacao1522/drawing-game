@@ -11,87 +11,180 @@ export default function Page() {
   let mouseX = null;
   let mouseY = null;
 
-  //WebSocketサーバーとのコネクション確立
   const ws = new WebSocket("ws://localhost:3001");
-  //メディア処理
-  useEffect(() => {
-    if (canvasRef.current) {
-      const stream = canvasRef.current.captureStream(30); // 30fpsでストリーム
-      // ここでstreamを使った処理を行う
-        ws.onopen = () => {
-          console.log("Connected to the signaling server");
-      
-          // RTCPeerConnectionの設定
-          const peerConnection = new RTCPeerConnection();
-      
-          // ontrackイベントハンドラの設定
-          peerConnection.ontrack = (event) => {
-            // HTML内にあるvideo要素を取得または作成
-            let remoteVideo =
-              document.getElementById("remoteVideo") ||
-              document.createElement("video");
-            // video要素がまだbodyに追加されていなければ追加する
-            if (!remoteVideo.parentNode) {
-              document.body.appendChild(remoteVideo);
-            }
-            // trackがvideoトラックであればvideo要素に設定する
-            if (event.track.kind === "video") {
-              remoteVideo.srcObject = event.streams[0];
-            }
-          };
-          //RTCPeerConnectionの設定
-          stream.getTracks().forEach((track) => {
-            peerConnection.addTrack(track, stream);
-          });
-          //シグナリングのイベントハンドラーの設定
-          ws.onmessage = (message) => {
-            const data = JSON.parse(message.data);
-            if (!data) {
-              return; // データが無効の場合は早期リターン
-            }
-            switch (data.type) {
-              case "offer":
-                const receivedOffer = data.offer;
-                peerConnection
-                  .setRemoteDescription(receivedOffer)
-                  .then(() => peerConnection.createAnswer())
-                  .then((answer) => peerConnection.setLocalDescription(answer))
-                  .then(() => {
-                    ws.send(
-                      JSON.stringify({
-                        type: "answer",
-                        answer: peerConnection.localDescription,
-                      })
-                    );
-                  });
-                break;
-              case "answer":
-                //これはオファラー側には不要です
-                break;
-              case "candidate":
-                peerConnection
-                  .addIceCandidate(new RTCIceCandidate(data.candidate))
-                  .catch((e) => console.error(e));
-                break;
-            }
-          };
-          //OfferとAnswerの交換、ICE候補の交換
-          peerConnection
-            .createOffer()
-            .then((offer) => {
-              return peerConnection.setLocalDescription(offer);
-            })
-            .then(() => {
-              ws.send(
-                JSON.stringify({
-                  type: "offer",
-                  offer: peerConnection.localDescription,
-                })
-              );
-            });
-        };
+  ws.onopen = () => {
+    console.log("Connected to the signaling server");
+    startPeerConnection();
+  };
+
+  // ICE server URLs
+  let peerConnectionConfig = {
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  };
+
+  // Data channel オプション
+  let dataChannelOptions = {
+    ordered: false,
+  };
+
+  // Peer Connection
+  let peerConnection;
+
+  // Data Channel
+  let dataChannel;
+
+  // ページ読み込み時に呼び出す関数
+  window.onload = function () {};
+
+  // 新しい RTCPeerConnection を作成する
+  function createPeerConnection() {
+    const pc = new RTCPeerConnection(peerConnectionConfig);
+
+    // ICE candidate 取得時のイベントハンドラを登録
+    pc.onicecandidate = function (evt) {
+      if (evt.candidate) {
+        // 一部の ICE candidate を取得
+        // Trickle ICE では ICE candidate を相手に通知する
+        console.log(evt.candidate);
+      } else {
+        console.log("ICE candidate gathering completed.");
+        // 全ての ICE candidate の取得完了（空の ICE candidate イベント）
+        // Vanilla ICE では，全てのICE candidate を含んだ SDP を相手に通知する
+        // （SDP は pc.localDescription.sdp で取得できる）
+
+        //メッセージを送信
+        const message = pc.localDescription.sdp;
+        ws.send(message);
+      }
+    };
+
+    pc.ondatachannel = function (evt) {
+      console.log("Data channel created:", evt);
+      setupDataChannel(evt.channel);
+      dataChannel = evt.channel;
+    };
+
+    return pc;
+  }
+
+  // ピアの接続を開始する
+  function startPeerConnection() {
+    // 新しい RTCPeerConnection を作成する
+    peerConnection = createPeerConnection();
+
+    // Data channel を生成
+    dataChannel = peerConnection.createDataChannel(
+      "test-data-channel",
+      dataChannelOptions
+    );
+    setupDataChannel(dataChannel);
+
+    // Offer を生成する
+    peerConnection
+      .createOffer()
+      .then(function (sessionDescription) {
+        console.log("createOffer() succeeded.");
+        return peerConnection.setLocalDescription(sessionDescription);
+      })
+      .then(function () {
+        // setLocalDescription() が成功した場合
+        // Trickle ICE ではここで SDP を相手に通知する
+        // Vanilla ICE では ICE candidate が揃うのを待つ
+        console.log("setLocalDescription() succeeded.");
+      })
+      .catch(function (err) {
+        console.error("setLocalDescription() failed.", err);
+      });
+  }
+
+  // Data channel のイベントハンドラを定義する
+  function setupDataChannel(dc) {
+    dc.onerror = function (error) {
+      console.log("Data channel error:", error);
+    };
+    dc.onmessage = function (evt) {
+      console.log("Data channel message:", evt.data);
+      let msg = evt.data;
+      document.getElementById("history").value =
+        "other> " + msg + "\n" + document.getElementById("history").value;
+    };
+    dc.onopen = function (evt) {
+      console.log("Data channel opened:", evt);
+    };
+    dc.onclose = function () {
+      console.log("Data channel closed.");
+    };
+  }
+
+  // 相手の SDP 通知を受ける
+  function setRemoteSdp() {
+    let sdptext = document.getElementById("remoteSDP").value;
+
+    if (peerConnection) {
+      // Peer Connection が生成済みの場合，SDP を Answer と見なす
+      let answer = new RTCSessionDescription({
+        type: "answer",
+        sdp: sdptext,
+      });
+      peerConnection
+        .setRemoteDescription(answer)
+        .then(function () {
+          console.log("setRemoteDescription() succeeded.");
+        })
+        .catch(function (err) {
+          console.error("setRemoteDescription() failed.", err);
+        });
+    } else {
+      // Peer Connection が未生成の場合，SDP を Offer と見なす
+      let offer = new RTCSessionDescription({
+        type: "offer",
+        sdp: sdptext,
+      });
+      // Peer Connection を生成
+      peerConnection = createPeerConnection();
+      peerConnection
+        .setRemoteDescription(offer)
+        .then(function () {
+          console.log("setRemoteDescription() succeeded.");
+        })
+        .catch(function (err) {
+          console.error("setRemoteDescription() failed.", err);
+        });
+      // Answer を生成
+      peerConnection
+        .createAnswer()
+        .then(function (sessionDescription) {
+          console.log("createAnswer() succeeded.");
+          return peerConnection.setLocalDescription(sessionDescription);
+        })
+        .then(function () {
+          // setLocalDescription() が成功した場合
+          // Trickle ICE ではここで SDP を相手に通知する
+          // Vanilla ICE では ICE candidate が揃うのを待つ
+          console.log("setLocalDescription() succeeded.");
+        })
+        .catch(function (err) {
+          console.error("setLocalDescription() failed.", err);
+        });
+      document.getElementById("status").value = "answer created";
     }
-  }, []); // 空の依存配列を使用してコンポーネントがマウントされた時にのみ実行
+  }
+
+  // チャットメッセージの送信
+  function sendMessage() {
+    if (!peerConnection || peerConnection.connectionState != "connected") {
+      alert("PeerConnection is not established.");
+      return false;
+    }
+    let msg = document.getElementById("message").value;
+    document.getElementById("message").value = "";
+
+    document.getElementById("history").value =
+      "me> " + msg + "\n" + document.getElementById("history").value;
+    dataChannel.send(msg);
+
+    return true;
+  }
 
   // canvas に描いたストロークの座標情報をすべて保存
   const [allStrokes, setAllStrokes] = useState({
@@ -311,6 +404,14 @@ export default function Page() {
         <Button variant="outlined" onClick={redo} className={styles.button}>
           進む
         </Button>
+      </div>
+      <div>
+        <textarea
+          id="history"
+          cols="80"
+          rows="10"
+          readOnly="readonly"
+        ></textarea>
       </div>
     </>
   );
