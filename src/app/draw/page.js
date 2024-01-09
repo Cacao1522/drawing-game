@@ -4,12 +4,15 @@ import React, { useRef, useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { Stack, Button, Slider } from "@mui/material";
 
+
 export default function Page() {
   const width = 800;
   const height = 500;
   let canvasRef = useRef(null);
   let mouseX = null;
   let mouseY = null;
+
+
   // canvas に描いたストロークの座標情報をすべて保存
   const [allStrokes, setAllStrokes] = useState({
     strokes: [],
