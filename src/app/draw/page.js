@@ -22,15 +22,21 @@ export default function Page() {
   });
   const [currentWidthColor, setCurrentWidthColor] = useState([]);
   const [undoWidthColor, setUndoWidthColor] = useState([]);
-  const [brushWidth, setBrushWidth] = useState(10);
+  const [brushWidth, setBrushWidth] = useState(7);
   const [brushColor, setBrushColor] = useState("#000000");
+  const [isDisappear, setIsDisappear] = useState(false);
+  const [isOneStroke, setIsOneStroke] = useState(false);
+  const [isLimited, setIsLimited] = useState(false);
+  const [ink, setInk] = useState(3000);
+  const [isAble, setIsAble] = useState(true);
+  let inkcount = 0;
   const getContext = () => {
     const canvas = canvasRef.current;
     return canvas.getContext("2d");
   };
 
   const OnClick = (e) => {
-    if (e.button !== 0) {
+    if (e.button !== 0 || ink <= 0 || !isAble) {
       return;
     }
     const canvas = canvasRef.current;
@@ -39,10 +45,13 @@ export default function Page() {
     const y = ~~(e.clientY - rect.top);
     setCurrentStroke([{ x, y }]);
     Draw(x, y);
+    if (inkcount > 0) {
+      setInk(ink - inkcount);
+    }
   };
 
   const OnMove = (e) => {
-    if (e.buttons !== 1) {
+    if (e.buttons !== 1 || ink <= 0 || !isAble) {
       return;
     }
     const canvas = canvasRef.current;
@@ -51,26 +60,56 @@ export default function Page() {
     const y = ~~(e.clientY - rect.top);
     //setCurrentStroke([...currentStroke, { x, y }]);
     currentStroke.push({ x, y });
+    // console.log({ x, y });
+    // console.log({ mouseX, mouseY });
     Draw(x, y);
   };
 
   const DrawEnd = (e) => {
     mouseX = null;
     mouseY = null;
-    if (currentStroke.length > 0) {
-      const nowAllStrokes = allStrokes.strokes;
-      setAllStrokes({
-        strokes: [...nowAllStrokes, { coordinates: currentStroke }],
-      });
-      setCurrentStroke([]);
-      setCurrentWidthColor([
-        ...currentWidthColor,
-        { width: brushWidth, color: brushColor },
-      ]);
+    if (currentStroke.length <= 0 || !isAble) return;
+    const nowAllStrokes = allStrokes.strokes;
+    setAllStrokes({
+      strokes: [...nowAllStrokes, { coordinates: currentStroke }],
+    });
+
+    // 白塗りで消したように見せる
+    if (isDisappear) {
+      setTimeout(() => {
+        const ctx = getContext();
+        ctx.beginPath();
+        for (let j = 0; j < currentStroke.length; j += 1) {
+          const xy = currentStroke[j];
+          if (j === 0) {
+            ctx.moveTo(xy.x, xy.y);
+          } else {
+            ctx.lineTo(xy.x, xy.y);
+            ctx.moveTo(xy.x, xy.y);
+          }
+        }
+        ctx.lineCap = "round";
+        ctx.lineWidth = brushWidth + 2;
+        ctx.strokeStyle = "#fff";
+        ctx.stroke();
+      }, 3000); // 3秒後に消す
+    }
+    setCurrentStroke([]);
+    setCurrentWidthColor([
+      ...currentWidthColor,
+      { width: brushWidth, color: brushColor },
+    ]);
+    if (isOneStroke) {
+      setIsAble(false);
+    }
+
+    if (inkcount > 0) {
+      setInk(ink - inkcount);
     }
   };
 
   const Draw = (x, y) => {
+    if (ink <= 0) return;
     const ctx = getContext();
     ctx.beginPath();
     ctx.globalAlpha = 1.0;
@@ -80,6 +119,22 @@ export default function Page() {
       ctx.moveTo(mouseX, mouseY);
     }
     ctx.lineTo(x, y);
+    if (isLimited && ink > 0) {
+      if (mouseX != null) {
+        // 線
+        inkcount += Math.round(
+          Math.sqrt((x - mouseX) ** 2 + (y - mouseY) ** 2)
+        );
+        if (ink < inkcount) {
+          setInk(0);
+          return;
+        }
+      } else {
+        // 始点、終点
+        inkcount += 3;
+      }
+    }
+
     ctx.lineCap = "round";
     ctx.lineWidth = brushWidth;
     ctx.strokeStyle = brushColor;
@@ -195,7 +250,7 @@ export default function Page() {
       <Stack direction="row" spacing={3}>
         <span>ペンの太さ</span>
         <Slider
-          defaultValue={10}
+          defaultValue={7}
           aria-label="Default"
           value={brushWidth}
           valueLabelDisplay="auto"
@@ -220,14 +275,52 @@ export default function Page() {
       </label>
       <div className={styles.buttons}>
         <Button variant="outlined" onClick={Reset} className={styles.button}>
-          クリア
+          全消去
         </Button>
         <Button variant="outlined" onClick={undo} className={styles.button}>
           戻す
         </Button>
         <Button variant="outlined" onClick={redo} className={styles.button}>
-          進む
+          進める
         </Button>
+      </div>
+      <div className={styles.buttons}>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            setIsDisappear((prev) => !prev);
+          }}
+          className={styles.button}
+        >
+          虫食い{isDisappear ? "あり" : "なし"}
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            setIsOneStroke((prev) => !prev);
+          }}
+          className={styles.button}
+        >
+          一筆書き{isOneStroke ? "あり" : "なし"}
+        </Button>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            setIsLimited((prev) => !prev);
+          }}
+          className={styles.button}
+        >
+          限られたインク{isLimited ? "あり" : "なし"}
+        </Button>
+        <Slider
+          //defaultValue={0}
+          aria-label="Default"
+          value={ink}
+          valueLabelDisplay="auto"
+          min={0}
+          max={3000}
+          sx={{ width: "30%" }}
+        />
       </div>
     </>
   );
