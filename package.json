@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "parcel ./src/index.html",
-
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -17,6 +16,7 @@
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",
+    "skyway-js": "^4.4.5",
     "ws": "^8.16.0"
   },
   "devDependencies": {
