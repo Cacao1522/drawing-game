@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "parcel ./src/index.html",
+    "dev": "parcel ./src/app/draw/index.html",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
