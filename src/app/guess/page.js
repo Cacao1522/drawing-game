@@ -122,55 +122,64 @@ export default function Page() {
     function setRemoteSdp(message) {
       let sdptext = message;
       console.log("Received remote SDP:\n" + sdptext);
-      if (peerConnection) {
-        // Peer Connection が生成済みの場合，SDP を Answer と見なす
-        let answer = new RTCSessionDescription({
-          type: "answer",
-          sdp: sdptext,
-        });
+      // if (peerConnection) {
+      //   // Peer Connection が生成済みの場合，SDP を Answer と見なす
+      //   let answer = new RTCSessionDescription({
+      //     type: "answer",
+      //     sdp: sdptext,
+      //   });
+      //   peerConnection
+      //     .setRemoteDescription(answer)
+      //     .then(function () {
+      //       console.log("setRemoteDescription() succeeded.");
+      //     })
+      //     .catch(function (err) {
+      //       console.error("setRemoteDescription() failed.", err);
+      //     });
+      // } else {
+      // Peer Connection が未生成の場合，SDP を Offer と見なす
+      let offer = new RTCSessionDescription({
+        type: "offer",
+        sdp: sdptext,
+      });
+      
+      // Peer Connection を生成
+      peerConnection = createPeerConnection();
+      
+      // Data channel を生成
+      dataChannel = peerConnection.createDataChannel(
+        "test-data-channel",
+        dataChannelOptions
+        );
+        setupDataChannel(dataChannel);
         peerConnection
-          .setRemoteDescription(answer)
-          .then(function () {
-            console.log("setRemoteDescription() succeeded.");
-          })
-          .catch(function (err) {
-            console.error("setRemoteDescription() failed.", err);
-          });
-      } else {
-        // Peer Connection が未生成の場合，SDP を Offer と見なす
-        let offer = new RTCSessionDescription({
-          type: "offer",
-          sdp: sdptext,
+        .setRemoteDescription(offer)
+        .then(function () {
+          console.log("setRemoteDescription() succeeded.");
+        })
+        .catch(function (err) {
+          console.error("setRemoteDescription() failed.", err);
         });
-        // Peer Connection を生成
-        peerConnection = createPeerConnection();
-        peerConnection
-          .setRemoteDescription(offer)
-          .then(function () {
-            console.log("setRemoteDescription() succeeded.");
-          })
-          .catch(function (err) {
-            console.error("setRemoteDescription() failed.", err);
-          });
+        
         // Answer を生成
         peerConnection
-          .createAnswer()
-          .then(function (sessionDescription) {
-            console.log("createAnswer() succeeded.");
-            return peerConnection.setLocalDescription(sessionDescription);
-          })
-          .then(function () {
-            // setLocalDescription() が成功した場合
-            // Trickle ICE ではここで SDP を相手に通知する
-            // Vanilla ICE では ICE candidate が揃うのを待つ
-            console.log("setLocalDescription() succeeded.");
-            const message = peerConnection.localDescription.sdp;
-            ws.send(message);
-          })
-          .catch(function (err) {
-            console.error("setLocalDescription() failed.", err);
-          });
-      }
+        .createAnswer()
+        .then(function (sessionDescription) {
+          console.log("createAnswer() succeeded.");
+          return peerConnection.setLocalDescription(sessionDescription);
+        })
+        .then(function () {
+          // setLocalDescription() が成功した場合
+          // Trickle ICE ではここで SDP を相手に通知する
+          // Vanilla ICE では ICE candidate が揃うのを待つ
+          console.log("setLocalDescription() succeeded.");
+          const message = peerConnection.localDescription.sdp;
+          ws.send(message);
+        })
+        .catch(function (err) {
+          console.error("setLocalDescription() failed.", err);
+        });
+      // }
     }
 
     // チャットメッセージの送信
