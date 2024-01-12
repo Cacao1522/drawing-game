@@ -3,6 +3,7 @@ import Link from "next/link";
 import React, { useRef, useEffect, useState, use } from "react";
 import styles from "./page.module.css";
 import { Stack, Button, Slider } from "@mui/material";
+import WebRTCDataChannelDemo from "./WebRTCDataChannelDemo";
 
 export default function Page() {
   const width = 800;
@@ -231,208 +232,14 @@ export default function Page() {
     });
     setCurrentWidthColor([...currentWidthColor, widthColor]);
   };
-
-  const [status, setStatus] = useState('');
-  const [localSDP, setLocalSDP] = useState('');
-  const [remoteSDP, setRemoteSDP] = useState('');
-  const [history, setHistory] = useState('');
-  const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    const peerConnectionConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-    let peerConnection;
-    let dataChannel;
-
-    const createPeerConnection = () => {
-      const pc = new RTCPeerConnection(peerConnectionConfig);
-
-      pc.onicecandidate = (evt) => {
-        if (evt.candidate) {
-          console.log(evt.candidate);
-          setStatus('ICE candidateの収集中');
-        } else {
-          setLocalSDP(pc.localDescription.sdp);
-          setStatus('Vanilla ICE準備完了');
-        }
-      };
-
-      pc.onconnectionstatechange = () => {
-        switch (pc.connectionState) {
-          case 'connected':
-            setStatus('接続済み');
-            break;
-          case 'disconnected':
-          case 'failed':
-            setStatus('切断済み');
-            break;
-          case 'closed':
-            setStatus('クローズ');
-            break;
-        }
-      };
-
-      pc.ondatachannel = (evt) => {
-        console.log('データチャネル作成:', evt);
-        setupDataChannel(evt.channel);
-        dataChannel = evt.channel;
-      };
-
-      return pc;
-    };
-
-    const startPeerConnection = () => {
-      peerConnection = createPeerConnection();
-      dataChannel = peerConnection.createDataChannel('test-data-channel', { ordered: false });
-      setupDataChannel(dataChannel);
-
-      peerConnection.createOffer()
-        .then((sessionDescription) => {
-          console.log('createOffer() 成功');
-          return peerConnection.setLocalDescription(sessionDescription);
-        })
-        .then(() => {
-          console.log('setLocalDescription 成功');
-        })
-        .catch((err) => {
-          console.error('setLocalDescription() 失敗', err);
-        });
-
-      setStatus('Offer作成中');
-    };
-
-    const setupDataChannel = (dc) => {
-      dc.onerror = (error) => {
-        console.log('データチャネルエラー:', error);
-      };
-
-      dc.onmessage = (evt) => {
-        console.log('データチャネルメッセージ:', evt.data);
-        const msg = evt.data;
-        setHistory((prevHistory) => `other> ${msg}\n${prevHistory}`);
-      };
-
-      dc.onopen = () => {
-        console.log('データチャネルオープン');
-      };
-
-      dc.onclose = () => {
-        console.log('データチャネルクローズ');
-      };
-    };
-
-    const handleSetRemoteSDP = () => {
-      if (peerConnection) {
-        const answer = new RTCSessionDescription({
-          type: 'answer',
-          sdp: remoteSDP,
-        });
-
-        peerConnection.setRemoteDescription(answer)
-          .then(() => {
-            console.log('setRemoteDescription() 成功');
-          })
-          .catch((err) => {
-            console.error('setRemoteDescription() 失敗', err);
-          });
-      } else {
-        const offer = new RTCSessionDescription({
-          type: 'offer',
-          sdp: remoteSDP,
-        });
-
-        peerConnection = createPeerConnection();
-
-        peerConnection.setRemoteDescription(offer)
-          .then(() => {
-            console.log('setRemoteDescription() 成功');
-          })
-          .catch((err) => {
-            console.error('setRemoteDescription() 失敗', err);
-          });
-
-        peerConnection.createAnswer()
-          .then((sessionDescription) => {
-            console.log('createAnswer() 成功');
-            return peerConnection.setLocalDescription(sessionDescription);
-          })
-          .then(() => {
-            console.log('setLocalDescription() 成功');
-          })
-          .catch((err) => {
-            console.error('setLocalDescription() 失敗', err);
-          });
-
-        setStatus('Answer作成中');
-      }
-    };
-
-    const handleSendMessage = () => {
-      if (!peerConnection || peerConnection.connectionState !== 'connected') {
-        alert('PeerConnectionが確立されていません。');
-        return;
-      }
-
-      const msg = message;
-      setMessage('');
-      setHistory((prevHistory) => `me> ${msg}\n${prevHistory}`);
-      dataChannel.send(msg);
-    };
-  }, []);
   return (
     <>
       <p>
         <Link href={"/"}>トップページ</Link>
       </p>
-      <div>
-        <h1>WebRTC Data Channel Demo</h1>
-
-        <h2>シグナリング</h2>
-        <p>状態: {status}</p>
-
-        <h3>SDPの生成</h3>
-        <p>(手順1) ブラウザ1で Start を押し，SDP (offer) を生成する。</p>
-        <button type="button" onClick={() => startPeerConnection}>
-          Start
-        </button>
-
-        <h3>自端末のSDP (Read-only)</h3>
-        <p>(手順2) ブラウザ1からこのSDP (offer) をコピーする。</p>
-        <p>(手順4) ブラウザ2で生成したこのSDP (answer) をコピーする。</p>
-        <textarea cols="80" rows="5" value={localSDP} readOnly></textarea>
-
-        <h3>他端末のSDP (手動でセットする)</h3>
-        <p>
-          (手順3) ブラウザ2で，コピーしたブラウザ1のSDP (offer) を貼り付け Set
-          を押すと，自端末のSDPに返答用 SDP (answer) が生成される。
-        </p>
-        <p>
-          (手順5) ブラウザ1で，コピーしたブラウザ2のSDP (answer) を貼り付け Set
-          を押す。
-        </p>
-        <textarea
-          cols="80"
-          rows="5"
-          value={remoteSDP}
-          onChange={(e) => setRemoteSDP(e.target.value)}
-        ></textarea>
-        <button type="button" onClick={() => handleSetRemoteSDP}>
-          Set
-        </button>
-
-        <h2>データチャネルでの通信</h2>
-        <form onSubmit={() => handleSendMessage}>
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            size="30"
-          />
-          <input type="submit" value="Send" />
-        </form>
-        <textarea cols="80" rows="10" value={history} readOnly></textarea>
+      <div className="App">
+        <WebRTCDataChannelDemo />
       </div>
-
-      <div className={styles.main}>
         <canvas
           onMouseDown={OnClick}
           onMouseMove={OnMove}
@@ -443,15 +250,6 @@ export default function Page() {
           height={`${height}px`}
           className={styles.wrapper}
         />
-        <div className={styles.answer}>
-          <textarea
-            id="history"
-            cols="80"
-            rows="10"
-            readOnly="readonly"
-          ></textarea>
-        </div>
-      </div>
       <Stack direction="row" spacing={3}>
         <span>ペンの太さ</span>
         <Slider
