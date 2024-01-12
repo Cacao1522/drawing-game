@@ -237,8 +237,6 @@ export default function Page() {
       <p>
         <Link href={"/"}>トップページ</Link>
       </p>
-
-      <div className={styles.main}>
         <canvas
           onMouseDown={OnClick}
           onMouseMove={OnMove}
@@ -249,15 +247,6 @@ export default function Page() {
           height={`${height}px`}
           className={styles.wrapper}
         />
-        <div className={styles.answer}>
-          <textarea
-            id="history"
-            cols="80"
-            rows="10"
-            readOnly="readonly"
-          ></textarea>
-        </div>
-      </div>
       <Stack direction="row" spacing={3}>
         <span>ペンの太さ</span>
         <Slider
