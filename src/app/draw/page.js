@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, use } from "react";
 import styles from "./page.module.css";
 import { Stack, Button, Slider } from "@mui/material";
 
@@ -12,6 +12,187 @@ export default function Page() {
   let mouseX = null;
   let mouseY = null;
 
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:3001");
+    ws.onopen = () => {
+      console.log("Connected to the signaling server");
+    };
+
+    // ICE server URLs
+    let peerConnectionConfig = {
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    };
+
+    // Data channel オプション
+    let dataChannelOptions = {
+      ordered: false,
+    };
+
+    // Peer Connection
+    let peerConnection;
+
+    // Data Channel
+    let dataChannel;
+
+    // ページ読み込み時に呼び出す関数
+    window.onload = function () {
+      startPeerConnection();
+    };
+
+    // 新しい RTCPeerConnection を作成する
+    function createPeerConnection() {
+      if (peerConnection) {
+        return peerConnection; // 既に作成済みのオブジェクトを返す
+      }
+      const pc = new RTCPeerConnection(peerConnectionConfig);
+
+      // ICE candidate 取得時のイベントハンドラを登録
+      pc.onicecandidate = function (evt) {
+        if (evt.candidate) {
+          // 一部の ICE candidate を取得
+          // Trickle ICE では ICE candidate を相手に通知する
+          console.log(evt.candidate);
+        } else {
+          console.log("ICE candidate gathering completed.");
+          // 全ての ICE candidate の取得完了（空の ICE candidate イベント）
+          // Vanilla ICE では，全てのICE candidate を含んだ SDP を相手に通知する
+          // （SDP は pc.localDescription.sdp で取得できる）
+
+          //メッセージを送信
+          const message = pc.localDescription.sdp;
+          ws.send(message);
+        }
+      };
+
+      pc.ondatachannel = function (evt) {
+        console.log("Data channel created:", evt);
+        setupDataChannel(evt.channel);
+        dataChannel = evt.channel;
+      };
+
+      return pc;
+    }
+
+    // ピアの接続を開始する
+    function startPeerConnection() {
+      // 新しい RTCPeerConnection を作成する
+      peerConnection = createPeerConnection();
+
+      // Data channel を生成
+      dataChannel = peerConnection.createDataChannel(
+        "test-data-channel",
+        dataChannelOptions
+      );
+      setupDataChannel(dataChannel);
+
+      // Offer を生成する
+      peerConnection
+        .createOffer()
+        .then(function (sessionDescription) {
+          console.log("createOffer() succeeded.");
+          return peerConnection.setLocalDescription(sessionDescription);
+        })
+        .then(function () {
+          // setLocalDescription() が成功した場合
+          // Trickle ICE ではここで SDP を相手に通知する
+          // Vanilla ICE では ICE candidate が揃うのを待つ
+          console.log("setLocalDescription() succeeded.");
+        })
+        .catch(function (err) {
+          console.error("setLocalDescription() failed.", err);
+        });
+    }
+
+    // Data channel のイベントハンドラを定義する
+    function setupDataChannel(dc) {
+      dc.onerror = function (error) {
+        console.log("Data channel error:", error);
+      };
+      dc.onmessage = function (evt) {
+        console.log("Data channel message:", evt.data);
+        let msg = evt.data;
+        document.getElementById("history").value =
+          "other> " + msg + "\n" + document.getElementById("history").value;
+      };
+      dc.onopen = function (evt) {
+        console.log("Data channel opened:", evt);
+      };
+      dc.onclose = function () {
+        console.log("Data channel closed.");
+      };
+    }
+
+    // 相手の SDP 通知を受ける
+    function setRemoteSdp() {
+      let sdptext = document.getElementById("remoteSDP").value;
+
+      if (peerConnection) {
+        // Peer Connection が生成済みの場合，SDP を Answer と見なす
+        let answer = new RTCSessionDescription({
+          type: "answer",
+          sdp: sdptext,
+        });
+        peerConnection
+          .setRemoteDescription(answer)
+          .then(function () {
+            console.log("setRemoteDescription() succeeded.");
+          })
+          .catch(function (err) {
+            console.error("setRemoteDescription() failed.", err);
+          });
+      } else {
+        // Peer Connection が未生成の場合，SDP を Offer と見なす
+        let offer = new RTCSessionDescription({
+          type: "offer",
+          sdp: sdptext,
+        });
+        // Peer Connection を生成
+        peerConnection = createPeerConnection();
+        peerConnection
+          .setRemoteDescription(offer)
+          .then(function () {
+            console.log("setRemoteDescription() succeeded.");
+          })
+          .catch(function (err) {
+            console.error("setRemoteDescription() failed.", err);
+          });
+        // Answer を生成
+        peerConnection
+          .createAnswer()
+          .then(function (sessionDescription) {
+            console.log("createAnswer() succeeded.");
+            return peerConnection.setLocalDescription(sessionDescription);
+          })
+          .then(function () {
+            // setLocalDescription() が成功した場合
+            // Trickle ICE ではここで SDP を相手に通知する
+            // Vanilla ICE では ICE candidate が揃うのを待つ
+            console.log("setLocalDescription() succeeded.");
+          })
+          .catch(function (err) {
+            console.error("setLocalDescription() failed.", err);
+          });
+        document.getElementById("status").value = "answer created";
+      }
+    }
+
+    // チャットメッセージの送信
+    function sendMessage() {
+      if (!peerConnection || peerConnection.connectionState != "connected") {
+        alert("PeerConnection is not established.");
+        return false;
+      }
+      let msg = document.getElementById("message").value;
+      document.getElementById("message").value = "";
+
+      document.getElementById("history").value =
+        "me> " + msg + "\n" + document.getElementById("history").value;
+      dataChannel.send(msg);
+
+      return true;
+    }
+  }, []);
 
   // canvas に描いたストロークの座標情報をすべて保存
   const [allStrokes, setAllStrokes] = useState({
@@ -240,16 +421,26 @@ export default function Page() {
         <Link href={"/"}>トップページ</Link>
       </p>
 
-      <canvas
-        onMouseDown={OnClick}
-        onMouseMove={OnMove}
-        onMouseUp={DrawEnd}
-        onMouseOut={DrawEnd}
-        ref={canvasRef}
-        width={`${width}px`}
-        height={`${height}px`}
-        className={styles.wrapper}
-      />
+      <div className={styles.main}>
+        <canvas
+          onMouseDown={OnClick}
+          onMouseMove={OnMove}
+          onMouseUp={DrawEnd}
+          onMouseOut={DrawEnd}
+          ref={canvasRef}
+          width={`${width}px`}
+          height={`${height}px`}
+          className={styles.wrapper}
+        />
+        <div className={styles.answer}>
+          <textarea
+            id="history"
+            cols="80"
+            rows="10"
+            readOnly="readonly"
+          ></textarea>
+        </div>
+      </div>
       <Stack direction="row" spacing={3}>
         <span>ペンの太さ</span>
         <Slider
