@@ -44,6 +44,9 @@ export default function Page() {
 
     // 新しい RTCPeerConnection を作成する
     function createPeerConnection() {
+        if (peerConnection) {
+          return peerConnection; // 既に作成済みのオブジェクトを返す
+        }
       let pc = new RTCPeerConnection(peerConnectionConfig);
 
       // ICE candidate 取得時のイベントハンドラを登録
@@ -146,20 +149,20 @@ export default function Page() {
       // Peer Connection を生成
       peerConnection = createPeerConnection();
       
-      // Data channel を生成
-      dataChannel = peerConnection.createDataChannel(
-        "test-data-channel",
-        dataChannelOptions
-        );
-        setupDataChannel(dataChannel);
-        peerConnection
-        .setRemoteDescription(offer)
-        .then(function () {
-          console.log("setRemoteDescription() succeeded.");
-        })
-        .catch(function (err) {
-          console.error("setRemoteDescription() failed.", err);
-        });
+      // // Data channel を生成
+      // dataChannel = peerConnection.createDataChannel(
+      //   "test-data-channel",
+      //   dataChannelOptions
+      //   );
+      //   setupDataChannel(dataChannel);
+      //   peerConnection
+      //   .setRemoteDescription(offer)
+      //   .then(function () {
+      //     console.log("setRemoteDescription() succeeded.");
+      //   })
+      //   .catch(function (err) {
+      //     console.error("setRemoteDescription() failed.", err);
+      //   });
         
         // Answer を生成
         peerConnection

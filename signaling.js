@@ -18,6 +18,7 @@ wsServer.on("connection", function (ws) {
         console.log("- skip sender -");
       } else {
         client.send(message);
+        console.log("- send to client -");
       }
     });
   });

@@ -15,32 +15,36 @@ export default function Page() {
     const ws = new WebSocket("ws://localhost:3001");
     ws.onopen = () => {
       console.log("Connected to the signaling server");
-      startPeerConnection();
     };
-  
+
     // ICE server URLs
     let peerConnectionConfig = {
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     };
-  
+
     // Data channel オプション
     let dataChannelOptions = {
       ordered: false,
     };
-  
+
     // Peer Connection
     let peerConnection;
-  
+
     // Data Channel
     let dataChannel;
-  
+
     // ページ読み込み時に呼び出す関数
-    window.onload = function () {};
-  
+    window.onload = function () {
+      startPeerConnection();
+    };
+
     // 新しい RTCPeerConnection を作成する
     function createPeerConnection() {
+      if (peerConnection) {
+        return peerConnection; // 既に作成済みのオブジェクトを返す
+      }
       const pc = new RTCPeerConnection(peerConnectionConfig);
-  
+
       // ICE candidate 取得時のイベントハンドラを登録
       pc.onicecandidate = function (evt) {
         if (evt.candidate) {
@@ -52,34 +56,34 @@ export default function Page() {
           // 全ての ICE candidate の取得完了（空の ICE candidate イベント）
           // Vanilla ICE では，全てのICE candidate を含んだ SDP を相手に通知する
           // （SDP は pc.localDescription.sdp で取得できる）
-  
+
           //メッセージを送信
           const message = pc.localDescription.sdp;
           ws.send(message);
         }
       };
-  
+
       pc.ondatachannel = function (evt) {
         console.log("Data channel created:", evt);
         setupDataChannel(evt.channel);
         dataChannel = evt.channel;
       };
-  
+
       return pc;
     }
-  
+
     // ピアの接続を開始する
     function startPeerConnection() {
       // 新しい RTCPeerConnection を作成する
       peerConnection = createPeerConnection();
-  
+
       // Data channel を生成
       dataChannel = peerConnection.createDataChannel(
         "test-data-channel",
         dataChannelOptions
       );
       setupDataChannel(dataChannel);
-  
+
       // Offer を生成する
       peerConnection
         .createOffer()
@@ -97,7 +101,7 @@ export default function Page() {
           console.error("setLocalDescription() failed.", err);
         });
     }
-  
+
     // Data channel のイベントハンドラを定義する
     function setupDataChannel(dc) {
       dc.onerror = function (error) {
@@ -116,11 +120,11 @@ export default function Page() {
         console.log("Data channel closed.");
       };
     }
-  
+
     // 相手の SDP 通知を受ける
     function setRemoteSdp() {
       let sdptext = document.getElementById("remoteSDP").value;
-  
+
       if (peerConnection) {
         // Peer Connection が生成済みの場合，SDP を Answer と見なす
         let answer = new RTCSessionDescription({
@@ -170,7 +174,7 @@ export default function Page() {
         document.getElementById("status").value = "answer created";
       }
     }
-  
+
     // チャットメッセージの送信
     function sendMessage() {
       if (!peerConnection || peerConnection.connectionState != "connected") {
@@ -179,15 +183,14 @@ export default function Page() {
       }
       let msg = document.getElementById("message").value;
       document.getElementById("message").value = "";
-  
+
       document.getElementById("history").value =
         "me> " + msg + "\n" + document.getElementById("history").value;
       dataChannel.send(msg);
-  
+
       return true;
     }
   }, []);
-
 
   // canvas に描いたストロークの座標情報をすべて保存
   const [allStrokes, setAllStrokes] = useState({
