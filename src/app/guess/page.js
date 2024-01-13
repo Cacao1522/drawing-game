@@ -4,8 +4,10 @@ import React, { useRef, useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { Stack, Button } from "@mui/material";
 import { items } from "./items";
+import WebRTCDataChannelDemo from "./WebRTCDataChannelDemo";
 
 export default function Page() {
+
   const movingTextRef = useRef(null);
   const [random, setRandom] = useState();
   const [inputText, setInputText] = useState("");
@@ -49,16 +51,19 @@ export default function Page() {
     <>
       <p>
         <Link href={"/"}>トップページ</Link>
-      </p>
+      </p>{" "}
+      <div className="App">
+        <WebRTCDataChannelDemo />
+      </div>
       <div className={styles.animationContainer}>
         <div ref={movingTextRef} className={styles.movingText}>
           {movingText}
         </div>
       </div>
-
       <label>
         入力してください :
         <input
+          id="inputText"
           type="text"
           size="20"
           className={styles.inputText}

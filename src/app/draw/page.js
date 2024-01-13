@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, use } from "react";
 import styles from "./page.module.css";
 import { Stack, Button, Slider } from "@mui/material";
+import WebRTCDataChannelDemo from "./WebRTCDataChannelDemo";
 
 export default function Page() {
   const width = 800;
@@ -236,17 +237,19 @@ export default function Page() {
       <p>
         <Link href={"/"}>トップページ</Link>
       </p>
-
-      <canvas
-        onMouseDown={OnClick}
-        onMouseMove={OnMove}
-        onMouseUp={DrawEnd}
-        onMouseOut={DrawEnd}
-        ref={canvasRef}
-        width={`${width}px`}
-        height={`${height}px`}
-        className={styles.wrapper}
-      />
+      <div className="App">
+        <WebRTCDataChannelDemo />
+      </div>
+        <canvas
+          onMouseDown={OnClick}
+          onMouseMove={OnMove}
+          onMouseUp={DrawEnd}
+          onMouseOut={DrawEnd}
+          ref={canvasRef}
+          width={`${width}px`}
+          height={`${height}px`}
+          className={styles.wrapper}
+        />
       <Stack direction="row" spacing={3}>
         <span>ペンの太さ</span>
         <Slider

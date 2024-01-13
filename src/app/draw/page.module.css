@@ -1,3 +1,7 @@
+.main {
+  display: flex;
+}
+
 .wrapper {
   border: 1px solid #000;
 }
