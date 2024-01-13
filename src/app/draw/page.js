@@ -232,6 +232,9 @@ export default function Page() {
     });
     setCurrentWidthColor([...currentWidthColor, widthColor]);
   };
+  const getCanvasData = () => {
+    return canvasRef.current.toDataURL();
+  };
   return (
     <>
       <p>
@@ -239,17 +242,18 @@ export default function Page() {
       </p>
       <div className="App">
         <WebRTCDataChannelDemo />
+        <WebRTCDataChannelDemo getCanvasData={getCanvasData} />
       </div>
-        <canvas
-          onMouseDown={OnClick}
-          onMouseMove={OnMove}
-          onMouseUp={DrawEnd}
-          onMouseOut={DrawEnd}
-          ref={canvasRef}
-          width={`${width}px`}
-          height={`${height}px`}
-          className={styles.wrapper}
-        />
+      <canvas
+        onMouseDown={OnClick}
+        onMouseMove={OnMove}
+        onMouseUp={DrawEnd}
+        onMouseOut={DrawEnd}
+        ref={canvasRef}
+        width={`${width}px`}
+        height={`${height}px`}
+        className={styles.wrapper}
+      />
       <Stack direction="row" spacing={3}>
         <span>ペンの太さ</span>
         <Slider

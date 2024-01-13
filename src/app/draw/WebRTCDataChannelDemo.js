@@ -91,7 +91,7 @@ class WebRTCDataChannelDemo extends React.Component {
       console.log("Data channel message:", evt.data);
       let msg = evt.data;
       this.setState((prevState) => ({
-        history: `other> ${msg}\n${prevState.history}`,
+        history: `回答者> ${msg}\n${prevState.history}`,
       }));
     };
     dc.onopen = () => {
@@ -165,6 +165,28 @@ class WebRTCDataChannelDemo extends React.Component {
   handleRemoteSdpChange = (event) => {
     this.setState({ remoteSDP: event.target.value });
   };
+
+  dataChannel = null;
+  intervalId = null;
+
+  componentDidMount() {
+    this.setupDataChannel();
+
+    // 100msごとにcanvasの内容を送信します。
+    this.intervalId = setInterval(() => {
+      const canvasData = this.props.getCanvasData();
+      if (this.dataChannel) {
+        this.dataChannel.send(canvasData);
+      }
+    }, 100);
+  }
+
+  componentWillUnmount() {
+    // 送信をクリアする
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
+  }
 
   render() {
     return (
