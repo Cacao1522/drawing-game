@@ -2,6 +2,7 @@
 import Link from "next/link";
 import React, { useRef, useEffect, useState, use } from "react";
 import styles from "./page.module.css";
+
 import { Stack, Button, Slider } from "@mui/material";
 import WebRTCDataChannelDemo from "./WebRTCDataChannelDemo";
 
@@ -235,6 +236,7 @@ export default function Page() {
   const getCanvasData = () => {
     return canvasRef.current.toDataURL();
   };
+
   return (
     <>
       <p>
@@ -243,6 +245,7 @@ export default function Page() {
       <div className="App">
         <WebRTCDataChannelDemo getCanvasData={getCanvasData} />
       </div>
+
       <canvas
         onMouseDown={OnClick}
         onMouseMove={OnMove}
