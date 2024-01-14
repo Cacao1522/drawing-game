@@ -8,6 +8,8 @@ class WebRTCDataChannelDemo extends React.Component {
     remoteSDP: "",
     history: "",
     message: "",
+    sentMessage: "",
+    answerMessage: "",
   };
 
   peerConnectionConfig = {
@@ -90,12 +92,17 @@ class WebRTCDataChannelDemo extends React.Component {
       console.log("Data channel error:", error);
     };
     dc.onmessage = (evt) => {
-      console.log("Data channel message:", evt.data);
-      let msg = evt.data;
-      this.setState((prevState) => ({
-        history: `other> ${msg}\n${prevState.history}`,
-      }));
+      const receivedMessage = JSON.parse(evt.data);
+      if (receivedMessage.type === "image") {
+        this.updateCanvas(receivedMessage.data);
+      } else if (receivedMessage.type === "text") {
+        console.log("答え:", receivedMessage.data);
+        this.setState({ answerMessage: receivedMessage.data }, () => {
+          console.log("answerMessage:", this.state.answerMessage);
+        });
+      }
     };
+
     dc.onopen = () => {
       console.log("Data channel opened.");
     };
@@ -144,6 +151,8 @@ class WebRTCDataChannelDemo extends React.Component {
     }
   };
 
+
+
   sendMessage = (event) => {
     event.preventDefault();
     const { message } = this.state;
@@ -156,6 +165,14 @@ class WebRTCDataChannelDemo extends React.Component {
     }
     if (this.dataChannel) {
       this.dataChannel.send(message);
+      const { answerMessage} = this.state;
+      console.log("送信:", message);
+      console.log("答え:", answerMessage);
+      if (answerMessage === message) {
+        this.setState((prevState) => ({
+          history: `正解! \n${prevState.history}`,
+        }));
+      }
     }
     this.setState((prevState) => ({
       message: "",
@@ -177,17 +194,6 @@ class WebRTCDataChannelDemo extends React.Component {
     this.canvasRef = React.createRef();
   }
 
-  // Data Channelのメッセージイベントをセットアップ
-  setupDataChannel = (dc) => {
-    // ... 他のイベントハンドラー設定
-
-    dc.onmessage = (evt) => {
-      // 受信したデータでcanvasを更新
-      this.updateCanvas(evt.data);
-    };
-
-    // ... 他のイベントハンドラー設定
-  };
   // canvas要素に画像を描画する関数
   updateCanvas = (dataURL) => {
     const canvas = this.canvasRef.current;
@@ -239,7 +245,9 @@ class WebRTCDataChannelDemo extends React.Component {
           />
           <input type="submit" value="Send" />
         </form>
-        <textarea value={this.state.history} readOnly cols="80" rows="10" />
+        <div>
+          <textarea value={this.state.history} readOnly cols="80" rows="10" />
+        </div>
         <canvas
           ref={this.canvasRef}
           width="800"
