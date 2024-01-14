@@ -169,6 +169,38 @@ class WebRTCDataChannelDemo extends React.Component {
   handleRemoteSdpChange = (event) => {
     this.setState({ remoteSDP: event.target.value });
   };
+  constructor(props) {
+    super(props);
+
+    // canvasの参照を作成
+    this.canvasRef = React.createRef();
+  }
+
+  // Data Channelのメッセージイベントをセットアップ
+  setupDataChannel = (dc) => {
+    // ... 他のイベントハンドラー設定
+
+    dc.onmessage = (evt) => {
+      // 受信したデータでcanvasを更新
+      this.updateCanvas(evt.data);
+    };
+
+    // ... 他のイベントハンドラー設定
+  };
+  // canvas要素に画像を描画する関数
+  updateCanvas = (dataURL) => {
+    const canvas = this.canvasRef.current;
+    if (canvas) {
+      const context = canvas.getContext("2d");
+      const image = new Image();
+      image.onload = () => {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      };
+      // Data URLを画像ソースとしてセット
+      image.src = dataURL;
+    }
+  };
 
   render() {
     return (
@@ -207,6 +239,7 @@ class WebRTCDataChannelDemo extends React.Component {
           <input type="submit" value="Send" />
         </form>
         <textarea value={this.state.history} readOnly cols="80" rows="10" />
+        <canvas ref={this.canvasRef} width="800" height="500" />
       </div>
     );
   }

@@ -241,7 +241,6 @@ export default function Page() {
         <Link href={"/"}>トップページ</Link>
       </p>
       <div className="App">
-        <WebRTCDataChannelDemo />
         <WebRTCDataChannelDemo getCanvasData={getCanvasData} />
       </div>
       <canvas
