@@ -252,8 +252,10 @@ class WebRTCDataChannelDemo extends React.Component {
             marginRight: "10px",
           }}
         >
-          <button onClick={this.createAnswer}>問題を作る</button>
-          <p>お題：{this.state.theme}</p>
+          <button onClick={this.createAnswer} style={{ marginRight: "10px" }}>
+            問題を作る
+          </button>
+          <p>お題：　　　　{this.state.theme}</p>
           <p>カウントダウン：{this.state.countdown}</p>
         </div>
       </div>
