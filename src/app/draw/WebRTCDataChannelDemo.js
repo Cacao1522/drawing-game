@@ -7,7 +7,10 @@ class WebRTCDataChannelDemo extends React.Component {
     remoteSDP: "",
     history: "",
     random: null,
-    theme: "", 
+    theme: "",
+    timerId: null,
+    countdown: 60, // 60秒で始まるカウントダウン
+    correctReceived: false, // 正解メッセージを受け取ったか
   };
 
   peerConnectionConfig = {
@@ -93,8 +96,13 @@ class WebRTCDataChannelDemo extends React.Component {
       console.log("Data channel message:", evt.data);
       let msg = evt.data;
       this.setState((prevState) => ({
-        history: `回答者> ${msg}\n${prevState.history}`
+        history: `回答者> ${msg}\n${prevState.history}`,
       }));
+      if (msg === "正解！" && this.state.timerId) {
+        this.setState({ correctReceived: true }); // 正解メッセージの受信を記録
+        clearTimeout(this.state.timerId); // タイマーをクリア
+        this.setState({ countdown: "正解が受け取られました！" }); // カウントダウンを停止
+      }
     };
     dc.onopen = () => {
       console.log("Data channel opened.");
@@ -144,8 +152,6 @@ class WebRTCDataChannelDemo extends React.Component {
     }
   };
 
-
-
   handleMessageChange = (event) => {
     this.setState({ message: event.target.value });
   };
@@ -161,6 +167,7 @@ class WebRTCDataChannelDemo extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this.interval); // クリーンアップ
+    clearTimeout(this.state.timerId);
   }
 
   sendCanvasDataRegularly = () => {
@@ -178,11 +185,31 @@ class WebRTCDataChannelDemo extends React.Component {
     const r = Math.floor(Math.random() * items.length);
     console.log(items[r]);
     const theme = items[r];
-    this.setState({ theme }); 
+    this.setState({ theme });
     this.setState({ random: r });
     const message = JSON.stringify({ type: "text", data: items[r] });
     console.log(message);
     this.dataChannel.send(message);
+
+    // カウントダウンをリセットする
+    this.setState({ countdown: 60, correctReceived: false });
+
+    // カウントダウン用のタイマーを設定
+    const timerId = setTimeout(this.countdownTimer, 1000);
+    this.setState({ timerId });
+  };
+  // カウントダウンを処理するメソッド
+  countdownTimer = () => {
+    // カウントダウンを1減らして更新
+    this.setState((prevState) => ({ countdown: prevState.countdown - 1 }));
+
+    // 正解がまだ受け取られていない場合はタイマーを再設定
+    if (this.state.countdown > 0 && !this.state.correctReceived) {
+      this.setState({ timerId: setTimeout(this.countdownTimer, 1000) });
+    } else {
+      // 正解が既に受け取られたか時間が0になった時はカウントダウン停止
+      clearTimeout(this.state.timerId);
+    }
   };
   render() {
     return (
@@ -218,8 +245,17 @@ class WebRTCDataChannelDemo extends React.Component {
         <div>
           <textarea value={this.state.history} readOnly cols="80" rows="10" />
         </div>
-        <button onClick={this.createAnswer}>問題を作る</button>
-        <p>お題：{this.state.theme}</p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginRight: "10px",
+          }}
+        >
+          <button onClick={this.createAnswer}>問題を作る</button>
+          <p>お題：{this.state.theme}</p>
+          <p>カウントダウン：{this.state.countdown}</p>
+        </div>
       </div>
     );
   }
