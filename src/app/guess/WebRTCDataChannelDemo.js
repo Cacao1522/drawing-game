@@ -1,4 +1,5 @@
 import React from "react";
+import styles from "./page.module.css";
 
 class WebRTCDataChannelDemo extends React.Component {
   state = {
@@ -239,7 +240,12 @@ class WebRTCDataChannelDemo extends React.Component {
           <input type="submit" value="Send" />
         </form>
         <textarea value={this.state.history} readOnly cols="80" rows="10" />
-        <canvas ref={this.canvasRef} width="800" height="500" />
+        <canvas
+          ref={this.canvasRef}
+          width="800"
+          height="500"
+          className={styles.canvas}
+        />
       </div>
     );
   }
