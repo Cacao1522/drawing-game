@@ -165,6 +165,26 @@ class WebRTCDataChannelDemo extends React.Component {
   handleRemoteSdpChange = (event) => {
     this.setState({ remoteSDP: event.target.value });
   };
+  componentDidMount() {
+    if (this.props.getCanvasData) {
+      this.interval = setInterval(this.sendCanvasDataRegularly, 1000); // 1秒ごとにCanvasデータを送信
+    }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.interval); // クリーンアップ
+  }
+
+
+  sendCanvasDataRegularly = () => {
+    const canvasData = this.props.getCanvasData();
+    this.sendCanvasData(canvasData);
+  };
+  sendCanvasData = (canvasData) => {
+    if (this.dataChannel && this.dataChannel.readyState === "open") {
+      this.dataChannel.send(canvasData);
+    }
+  };
 
   render() {
     return (
