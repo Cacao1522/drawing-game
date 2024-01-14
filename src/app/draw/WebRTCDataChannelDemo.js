@@ -142,6 +142,7 @@ class WebRTCDataChannelDemo extends React.Component {
     }
   };
 
+  
   sendMessage = () => {
     const { message } = this.state;
     if (
