@@ -2,50 +2,107 @@
 import Link from "next/link";
 import React, { useRef, useEffect, useState } from "react";
 import styles from "./page.module.css";
-import { Stack, Button } from "@mui/material";
 import { items } from "./items";
 import WebRTCDataChannelDemo from "./WebRTCDataChannelDemo";
 
 export default function Page() {
-
   const movingTextRef = useRef(null);
-  const [random, setRandom] = useState();
+  const [random, setRandom] = useState(null);
   const [inputText, setInputText] = useState("");
   const [movingText, setMovingText] = useState("");
   const [ok, setOk] = useState("");
-  function createAnswer() {
+  const [point, setPoint] = useState(0);
+  const [challenge, setChallenge] = useState(0); // 挑戦回数
+  const [answertimer, setAnswertimer] = useState(null);
+  const [clear, setClear] = useState(0);
+  let timerInterval;
+
+  const startTimer = () => {
+    setAnswertimer(20);
+    timerInterval = setInterval(() => {
+      setAnswertimer((prevTimer) => (prevTimer > 0 ? prevTimer - 1 : prevTimer));
+    }, 1000);
+
+    return timerInterval;
+  };
+
+  const createAnswer = () => {
+    // タイマーが0秒の場合は問題を作成しない
+    if (answertimer === 0) {
+      return;
+    }
+
     const r = Math.floor(Math.random() * items.length);
     console.log(items[r]);
     setRandom(r);
-  }
 
-  function answer() {
-    //const inputText = document.getElementById("inputText").value;
-    // const movingText = document.getElementById("movingText");
-    // movingText.textContent = inputText;
+    // 問題作成ボタンが押されたら前回のタイマーをクリアして新しいタイマーを開始
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+    timerInterval = startTimer();
+  };
+
+  const answer = () => {
     setMovingText(inputText);
     setInputText("");
-    // Reset animation
     const textElement = movingTextRef.current;
     if (textElement) {
       textElement.style.animation = "none";
-      textElement.offsetHeight; // リフローをトリガーするためのプロパティ
+      textElement.offsetHeight; // Trigger reflow
       textElement.style.animation = null;
     }
-    // movingText.style.animation = "none";
-    // movingText.offsetHeight; // Trigger reflow
-    // movingText.style.animation = null;
 
-    // Clear input field
-    //document.getElementById("inputText").value = "";
-    // Check the answer
-    //var ok = document.getElementById("ok");
+    // タイマーが0秒の場合は解答を受け付けない
+    if (answertimer === 0) {
+      return;
+    }
+
     if (inputText === items[random]) {
       setOk("正解！");
+      setPoint(point + 1);
+      setRandom(null);
+      setAnswertimer(null);
+      setChallenge(challenge + 1);
+      setClear(clear + 1);
+      // 新しいタイマーが生成されたら前回のタイマーをクリア
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+      timerInterval = null;
     } else {
       setOk(null);
     }
-  }
+    if (answertimer <= 0) {
+      setRandom(null);
+      setAnswertimer(null);
+      clearInterval(timerInterval);
+      setChallenge(challenge + 1);
+      // 新しいタイマーが生成されたら前回のタイマーをクリア
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+      timerInterval = null;
+    }
+  };
+
+  const gameover = () => {
+    if (challenge === 5 && clear < 3) {
+      document.write("ゲームオーバー");
+    }
+    if (challenge === 5 && clear >= 3) {
+      document.write("クリア！");
+    }
+  };
+
+  useEffect(() => {
+    // コンポーネントがアンマウントされるときにタイマーをクリア
+    return () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+    };
+  }, []); // Empty dependency array means this effect runs once on mount
 
   return (
     <>
@@ -60,6 +117,8 @@ export default function Page() {
           {movingText}
         </div>
       </div>
+      <p>あなたの得点は{point}点です</p>
+      <p>残り時間: {answertimer}秒</p>
       <label>
         入力してください :
         <input
