@@ -93,7 +93,7 @@ class WebRTCDataChannelDemo extends React.Component {
       console.log("Data channel message:", evt.data);
       let msg = evt.data;
       this.setState((prevState) => ({
-        history: `other> ${msg}\n${prevState.history}`,
+        history: `回答者> ${msg}\n${prevState.history}`
       }));
     };
     dc.onopen = () => {
@@ -144,21 +144,7 @@ class WebRTCDataChannelDemo extends React.Component {
     }
   };
 
-  sendMessage = () => {
-    const { message } = this.state;
-    if (
-      !this.peerConnection ||
-      this.peerConnection.connectionState !== "connected"
-    ) {
-      alert("PeerConnection is not established.");
-      return;
-    }
-    this.dataChannel.send(message);
-    this.setState((prevState) => ({
-      message: "",
-      history: `me> ${message}\n${prevState.history}`,
-    }));
-  };
+
 
   handleMessageChange = (event) => {
     this.setState({ message: event.target.value });
@@ -192,7 +178,7 @@ class WebRTCDataChannelDemo extends React.Component {
     const r = Math.floor(Math.random() * items.length);
     console.log(items[r]);
     const theme = items[r];
-    this.setState({ theme }); // お題をstateに保存
+    this.setState({ theme }); 
     this.setState({ random: r });
     const message = JSON.stringify({ type: "text", data: items[r] });
     console.log(message);

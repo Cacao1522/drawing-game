@@ -151,8 +151,6 @@ class WebRTCDataChannelDemo extends React.Component {
     }
   };
 
-
-
   sendMessage = (event) => {
     event.preventDefault();
     const { message } = this.state;
@@ -165,18 +163,19 @@ class WebRTCDataChannelDemo extends React.Component {
     }
     if (this.dataChannel) {
       this.dataChannel.send(message);
-      const { answerMessage} = this.state;
+      const { answerMessage } = this.state;
       console.log("送信:", message);
       console.log("答え:", answerMessage);
       if (answerMessage === message) {
         this.setState((prevState) => ({
           history: `正解! \n${prevState.history}`,
         }));
+        this.dataChannel.send("正解!");
       }
     }
     this.setState((prevState) => ({
       message: "",
-      history: `me> ${message}\n${prevState.history}`,
+      history: `自分> ${message}\n${prevState.history}`,
     }));
   };
 
