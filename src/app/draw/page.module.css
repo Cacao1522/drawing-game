@@ -7,8 +7,34 @@
 }
 .buttons {
   display: flex;
+  background-color: white;
 }
 .button {
   margin: 10px;
   width: 20%;
+  background-color: white;
+}
+.background_lower {
+  background-image: url("/images/background.png");
+  background-repeat: no-repeat;
+  margin: 0px;
+  padding: 0px;
+  width: 100vw;
+  position: fixed;
+  height: 100vh;
+  top: 0px;
+  left: 0px;
+  z-index: -10;
+}
+
+.background_upper {
+  background-color: white;
+  margin: 0px;
+  padding: 0px;
+  width: 55vw;
+  position: fixed;
+  height: 100vh;
+  top: 0px;
+  left: 0px;
+  z-index: -9;
 }

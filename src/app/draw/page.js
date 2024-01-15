@@ -237,6 +237,10 @@ export default function Page() {
   };
   return (
     <>
+      <div className={styles.background_lower}>
+      </div>
+      <div className={styles.background_upper}>
+      </div>
       <p>
         <Link href={"/"}>トップページ</Link>
       </p>
@@ -327,6 +331,7 @@ export default function Page() {
           max={3000}
           sx={{ width: "30%" }}
         />
+
       </div>
     </>
   );
