@@ -1,5 +1,18 @@
 import React from "react";
+
+import { db } from "../../../fire";
+import { doc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
+// import {
+//   Stack,
+//   Button,
+//   Card,
+//   CardContent,
+//   Typography,
+//   CardActions,
+// } from "@mui/material";
+
 import styles from "./page.module.css";
+
 
 class WebRTCDataChannelDemo extends React.Component {
   state = {
@@ -18,15 +31,24 @@ class WebRTCDataChannelDemo extends React.Component {
   dataChannelOptions = { ordered: false };
   peerConnection = null;
   dataChannel = null;
+  unSubscribeLocal = null;
 
   componentDidMount() {
     this.setState({ status: "closed" });
+    this.unSubscribeLocal = onSnapshot(doc(db, "room1", "localSDP"), (doc) => {
+      if (doc.data().offer !== "") this.setRemoteSdp(doc.data().offer);
+      console.log("Current data:", doc.data().offer);
+    });
   }
-
-  createPeerConnection = () => {
+  componentWillUnmount() {
+    if (this.unSubscribeLocal) {
+      this.unSubscribeLocal();
+    }
+  }
+  createPeerConnection = (room) => {
     const pc = new RTCPeerConnection(this.peerConnectionConfig);
 
-    pc.onicecandidate = (evt) => {
+    pc.onicecandidate = async (evt) => {
       if (evt.candidate) {
         console.log(evt.candidate);
         this.setState({ status: "Collecting ICE candidates" });
@@ -35,6 +57,8 @@ class WebRTCDataChannelDemo extends React.Component {
           localSDP: pc.localDescription.sdp,
           status: "Vanilla ICE ready",
         });
+        const local = { answer: pc.localDescription.sdp };
+        await updateDoc(doc(db, "room1", "remoteSDP"), local);
       }
     };
 
@@ -111,8 +135,8 @@ class WebRTCDataChannelDemo extends React.Component {
     };
   };
 
-  setRemoteSdp = () => {
-    const sdptext = this.state.remoteSDP;
+  setRemoteSdp = (SDP) => {
+    const sdptext = SDP;
 
     const sdpType = this.peerConnection ? "answer" : "offer";
     const sdp = new RTCSessionDescription({
@@ -215,7 +239,7 @@ class WebRTCDataChannelDemo extends React.Component {
         <p>
           状態: <input type="text" value={this.state.status} readOnly />
         </p>
-        <p>(手順3) (offer) を貼り付け Set を押す</p>
+        {/* <p>(手順3) (offer) を貼り付け Set を押す</p>
         <textarea
           id="remoteSDP"
           cols="80"
@@ -233,7 +257,7 @@ class WebRTCDataChannelDemo extends React.Component {
           rows="5"
           readOnly="readonly"
           value={this.state.localSDP}
-        ></textarea>
+        ></textarea> */}
 
         <h3>回答の送信</h3>
         <form onSubmit={this.sendMessage}>

@@ -1,10 +1,13 @@
 "use client";
 import Link from "next/link";
-import React, { useRef, useEffect, useState, use } from "react";
+import React, { useRef, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
 
 import { Stack, Button, Slider } from "@mui/material";
 import WebRTCDataChannelDemo from "./WebRTCDataChannelDemo";
+import { db } from "../../../fire";
+import { doc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
 
 export default function Page() {
   const width = 800;
@@ -236,6 +239,20 @@ export default function Page() {
   const getCanvasData = () => {
     return canvasRef.current.toDataURL();
   };
+
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      // ページが閉じられる前に実行したい処理
+      updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   return (
     <>
