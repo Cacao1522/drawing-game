@@ -1,14 +1,19 @@
 import React from "react";
+
 import { db } from "../../../fire";
 import { doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { Stack, Button } from "@mui/material";
 // import styles from "./WebRTC.module.css";
+import { items } from "./items";
+
 class WebRTCDataChannelDemo extends React.Component {
   state = {
     status: "closed",
     localSDP: "",
     remoteSDP: "",
     history: "",
+    random: null,
+    theme: "", 
   };
 
   peerConnectionConfig = {
@@ -207,11 +212,25 @@ class WebRTCDataChannelDemo extends React.Component {
   };
   sendCanvasData = (canvasData) => {
     if (this.dataChannel && this.dataChannel.readyState === "open") {
-      this.dataChannel.send(canvasData);
+      const message = JSON.stringify({ type: "image", data: canvasData });
+      this.dataChannel.send(message);
     }
   };
+
   stop = async () => {
     await updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
+  };
+  createAnswer = (event) => {
+    event.preventDefault();
+    const r = Math.floor(Math.random() * items.length);
+    console.log(items[r]);
+    const theme = items[r];
+    this.setState({ theme }); // お題をstateに保存
+    this.setState({ random: r });
+    const message = JSON.stringify({ type: "text", data: items[r] });
+    console.log(message);
+    this.dataChannel.send(message);
+
   };
   render() {
     return (
@@ -251,9 +270,13 @@ class WebRTCDataChannelDemo extends React.Component {
         ></textarea>
         <button type="button" onClick={() => this.setRemoteSdp()}>
           Set
-        </button>
-        <div></div>
-        <textarea value={this.state.history} readOnly cols="80" rows="10" /> */}
+        </button>*/}
+
+        <div>
+          <textarea value={this.state.history} readOnly cols="80" rows="10" />
+        </div>
+        <button onClick={this.createAnswer}>問題を作る</button>
+        <p>お題：{this.state.theme}</p>
       </div>
     );
   }

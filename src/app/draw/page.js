@@ -3,6 +3,7 @@ import Link from "next/link";
 import React, { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
+
 import { Stack, Button, Slider } from "@mui/material";
 import WebRTCDataChannelDemo from "./WebRTCDataChannelDemo";
 import { db } from "../../../fire";
@@ -239,6 +240,7 @@ export default function Page() {
     return canvasRef.current.toDataURL();
   };
 
+
   useEffect(() => {
     const handleBeforeUnload = (event) => {
       // ページが閉じられる前に実行したい処理
@@ -254,12 +256,17 @@ export default function Page() {
 
   return (
     <>
+      <div className={styles.background_lower}>
+      </div>
+      <div className={styles.background_upper}>
+      </div>
       <p>
         <Link href={"/"}>トップページ</Link>
       </p>
       <div className="App">
         <WebRTCDataChannelDemo getCanvasData={getCanvasData} />
       </div>
+
       <canvas
         onMouseDown={OnClick}
         onMouseMove={OnMove}
@@ -344,6 +351,7 @@ export default function Page() {
           max={3000}
           sx={{ width: "30%" }}
         />
+
       </div>
     </>
   );
