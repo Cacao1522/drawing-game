@@ -1,5 +1,8 @@
 import React from "react";
-
+import { db } from "../../../fire";
+import { doc, updateDoc, onSnapshot } from "firebase/firestore";
+import { Stack, Button } from "@mui/material";
+// import styles from "./WebRTC.module.css";
 class WebRTCDataChannelDemo extends React.Component {
   state = {
     status: "closed",
@@ -14,15 +17,32 @@ class WebRTCDataChannelDemo extends React.Component {
   dataChannelOptions = { ordered: false };
   peerConnection = null;
   dataChannel = null;
+  unSubscribeRemote = null;
 
   componentDidMount() {
     this.setState({ status: "closed" });
   }
-
+  receiveAnswerSDP() {
+    this.unSubscribeRemote = onSnapshot(
+      doc(db, "room1", "remoteSDP"),
+      (doc) => {
+        if (doc.data().answer !== "") this.setRemoteSdp(doc.data().answer);
+        console.log("Current data:", doc.data().answer);
+      }
+    );
+  }
+  componentWillUnmount() {
+    if (this.unSubscribeRemote) {
+      this.unSubscribeRemote();
+    }
+    if (this.localSDP) {
+      updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
+    }
+  }
   createPeerConnection = () => {
     const pc = new RTCPeerConnection(this.peerConnectionConfig);
 
-    pc.onicecandidate = (evt) => {
+    pc.onicecandidate = async (evt) => {
       if (evt.candidate) {
         console.log(evt.candidate);
         this.setState({ status: "Collecting ICE candidates" });
@@ -31,6 +51,8 @@ class WebRTCDataChannelDemo extends React.Component {
           localSDP: pc.localDescription.sdp,
           status: "Vanilla ICE ready",
         });
+        const local = { offer: pc.localDescription.sdp };
+        await updateDoc(doc(db, "room1", "localSDP"), local);
       }
     };
 
@@ -81,6 +103,7 @@ class WebRTCDataChannelDemo extends React.Component {
       });
 
     this.setState({ status: "offer created" });
+    this.receiveAnswerSDP();
   };
 
   setupDataChannel = (dc) => {
@@ -102,15 +125,15 @@ class WebRTCDataChannelDemo extends React.Component {
     };
   };
 
-  setRemoteSdp = () => {
-    const sdptext = this.state.remoteSDP;
-
+  setRemoteSdp = async (SDP) => {
+    const sdptext = SDP;
+    updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
+    updateDoc(doc(db, "room1", "remoteSDP"), { answer: "" });
     const sdpType = this.peerConnection ? "answer" : "offer";
     const sdp = new RTCSessionDescription({
       type: sdpType,
       sdp: sdptext,
     });
-
     if (this.peerConnection) {
       this.peerConnection
         .setRemoteDescription(sdp)
@@ -173,8 +196,10 @@ class WebRTCDataChannelDemo extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this.interval); // クリーンアップ
+    if (this.unSubscribeRemote) {
+      this.unSubscribeRemote();
+    }
   }
-
 
   sendCanvasDataRegularly = () => {
     const canvasData = this.props.getCanvasData();
@@ -185,14 +210,24 @@ class WebRTCDataChannelDemo extends React.Component {
       this.dataChannel.send(canvasData);
     }
   };
-
+  stop = async () => {
+    await updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
+  };
   render() {
     return (
       <div>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            this.startPeerConnection();
+          }}
+        >
+          接続
+        </Button>
         <p>
           状態: <input type="text" value={this.state.status} readOnly />
         </p>
-        <div>
+        {/* <div>
           <p>(手順1)Start を押し，SDP (offer) を生成する。</p>
           <button type="button" onClick={() => this.startPeerConnection()}>
             Start
@@ -205,8 +240,8 @@ class WebRTCDataChannelDemo extends React.Component {
           rows="5"
           readOnly="readonly"
           value={this.state.localSDP}
-        ></textarea>
-        <p>(手順5) SDP (answer) を貼り付け Set を押す。</p>
+        ></textarea> */}
+        {/* <p>(手順5) SDP (answer) を貼り付け Set を押す。</p>
         <textarea
           id="remoteSDP"
           cols="80"
@@ -218,7 +253,7 @@ class WebRTCDataChannelDemo extends React.Component {
           Set
         </button>
         <div></div>
-        <textarea value={this.state.history} readOnly cols="80" rows="10" />
+        <textarea value={this.state.history} readOnly cols="80" rows="10" /> */}
       </div>
     );
   }
