@@ -76,6 +76,8 @@ export default function Page() {
       <button onClick={answer}>解答する</button>
       <button onClick={createAnswer}>問題を作る</button>
       <span className={styles.ok}>{ok}</span>
+      <div className={styles.background}>
+      </div>
     </>
   );
 }
