@@ -69,6 +69,10 @@ export default function Page() {
       </label>
       <button onClick={answer}>解答する</button>
       <span className={styles.ok}>{ok}</span>
+      <div className={styles.background_lower}>
+      </div>
+      <div className={styles.background_upper}>
+      </div>
     </>
   );
 }
