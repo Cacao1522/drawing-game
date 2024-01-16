@@ -4,6 +4,7 @@
 
 .wrapper {
   border: 1px solid #000;
+  touch-action: pinch-zoom;
 }
 .buttons {
   display: flex;
