@@ -1,9 +1,13 @@
 "use client";
 import Link from "next/link";
-import React, { useRef, useEffect, useState, use } from "react";
+import React, { useRef, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
+
 import { Stack, Button, Slider } from "@mui/material";
 import WebRTCDataChannelDemo from "./WebRTCDataChannelDemo";
+import { db } from "../../../fire";
+import { doc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
 
 export default function Page() {
   const width = 800;
@@ -37,13 +41,20 @@ export default function Page() {
   };
 
   const OnClick = (e) => {
-    if (e.button !== 0 || ink <= 0 || !isAble) {
+    if ((e.button !== 0 && !e.touches) || ink <= 0 || !isAble) {
       return;
     }
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = ~~(e.clientX - rect.left);
-    const y = ~~(e.clientY - rect.top);
+    let x, y;
+    if (e.clientX) {
+      x = ~~(e.clientX - rect.left);
+      y = ~~(e.clientY - rect.top);
+    } else {
+      if (e.touches.length !== 1) return;
+      x = ~~(e.touches[0].clientX - rect.left);
+      y = ~~(e.touches[0].clientY - rect.top);
+    }
     setCurrentStroke([{ x, y }]);
     Draw(x, y);
     if (inkcount > 0) {
@@ -52,13 +63,21 @@ export default function Page() {
   };
 
   const OnMove = (e) => {
-    if (e.buttons !== 1 || ink <= 0 || !isAble) {
+    if ((e.buttons !== 1 && !e.touches) || ink <= 0 || !isAble) {
       return;
     }
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = ~~(e.clientX - rect.left);
-    const y = ~~(e.clientY - rect.top);
+    let x, y;
+    if (e.clientX) {
+      x = ~~(e.clientX - rect.left);
+      y = ~~(e.clientY - rect.top);
+    } else {
+      if (e.touches.length !== 1) return;
+      x = ~~(e.touches[0].clientX - rect.left);
+      y = ~~(e.touches[0].clientY - rect.top);
+    }
+
     //setCurrentStroke([...currentStroke, { x, y }]);
     currentStroke.push({ x, y });
     // console.log({ x, y });
@@ -235,23 +254,44 @@ export default function Page() {
   const getCanvasData = () => {
     return canvasRef.current.toDataURL();
   };
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      // ページが閉じられる前に実行したい処理
+      updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
   return (
     <>
-      <div className={styles.background_lower}>
-      </div>
-      <div className={styles.background_upper}>
-      </div>
+      <div className={styles.background_lower}></div>
+      <div className={styles.background_upper}></div>
       <p>
         <Link href={"/"}>トップページ</Link>
       </p>
       <div className="App">
         <WebRTCDataChannelDemo getCanvasData={getCanvasData} />
       </div>
+
       <canvas
         onMouseDown={OnClick}
         onMouseMove={OnMove}
         onMouseUp={DrawEnd}
         onMouseOut={DrawEnd}
+        onTouchStart={OnClick}
+        // onTouchStart={() => {
+        //   OnClick();
+        //   OnMove();
+        // }}
+        onTouchMove={OnMove}
+        onTouchEnd={DrawEnd}
+        onTouchCancel={DrawEnd}
         ref={canvasRef}
         width={`${width}px`}
         height={`${height}px`}
@@ -331,7 +371,6 @@ export default function Page() {
           max={3000}
           sx={{ width: "30%" }}
         />
-
       </div>
     </>
   );

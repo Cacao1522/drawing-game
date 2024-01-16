@@ -9,15 +9,9 @@ import WebRTCDataChannelDemo from "./WebRTCDataChannelDemo";
 export default function Page() {
 
   const movingTextRef = useRef(null);
-  const [random, setRandom] = useState();
   const [inputText, setInputText] = useState("");
   const [movingText, setMovingText] = useState("");
   const [ok, setOk] = useState("");
-  function createAnswer() {
-    const r = Math.floor(Math.random() * items.length);
-    console.log(items[r]);
-    setRandom(r);
-  }
 
   function answer() {
     //const inputText = document.getElementById("inputText").value;
@@ -53,13 +47,13 @@ export default function Page() {
         <Link href={"/"}>トップページ</Link>
       </p>{" "}
       <div className="App">
-        <WebRTCDataChannelDemo />
+        <WebRTCDataChannelDemo/>
       </div>
-      <div className={styles.animationContainer}>
+      {/* <div className={styles.animationContainer}>
         <div ref={movingTextRef} className={styles.movingText}>
           {movingText}
         </div>
-      </div>
+      </div> */}
       <label>
         入力してください :
         <input
@@ -74,7 +68,6 @@ export default function Page() {
         />
       </label>
       <button onClick={answer}>解答する</button>
-      <button onClick={createAnswer}>問題を作る</button>
       <span className={styles.ok}>{ok}</span>
       <div className={styles.background_lower}>
       </div>
