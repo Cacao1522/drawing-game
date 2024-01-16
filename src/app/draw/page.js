@@ -34,6 +34,7 @@ export default function Page() {
   const [isLimited, setIsLimited] = useState(false);
   const [ink, setInk] = useState(3000);
   const [isAble, setIsAble] = useState(true);
+  const [isAllowLink, setIsAllowLink] = useState(true);
   let inkcount = 0;
   const getContext = () => {
     const canvas = canvasRef.current;
@@ -240,31 +241,23 @@ export default function Page() {
     return canvasRef.current.toDataURL();
   };
 
-
-  useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      // ページが閉じられる前に実行したい処理
-      updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
-
   return (
     <>
-      <div className={styles.background_lower}>
-      </div>
-      <div className={styles.background_upper}>
-      </div>
-      <p>
-        <Link href={"/"}>トップページ</Link>
-      </p>
+      <div className={styles.background_lower}></div>
+      <div className={styles.background_upper}></div>
+      {isAllowLink ? (
+        <p>
+          <Link href={"/"}>トップページ</Link>
+        </p>
+      ) : (
+        <p>　</p>
+      )}
+
       <div className="App">
-        <WebRTCDataChannelDemo getCanvasData={getCanvasData} />
+        <WebRTCDataChannelDemo
+          getCanvasData={getCanvasData}
+          isAllow={setIsAllowLink}
+        />
       </div>
 
       <canvas
@@ -351,7 +344,6 @@ export default function Page() {
           max={3000}
           sx={{ width: "30%" }}
         />
-
       </div>
     </>
   );
