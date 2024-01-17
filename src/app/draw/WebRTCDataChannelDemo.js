@@ -283,10 +283,18 @@ class WebRTCDataChannelDemo extends React.Component {
         <div>
           <textarea value={this.state.history} readOnly cols="80" rows="10" />
         </div>
-        <div>
-        <button onClick={this.createAnswer}>問題を作る</button>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginRight: "10px",
+          }}
+        >
+          <button onClick={this.createAnswer} style={{ marginRight: "10px" }}>
+            問題を作る
+          </button>
+          <p>お題：　　　　{this.state.theme}</p>
         </div>
-        <p>お題：{this.state.theme}</p>
       </div>
     );
   }

@@ -16,7 +16,7 @@
   background-color: white;
 }
 .background_lower {
-  background-image: url("/images/background.png");
+  /* background-image: url("/images/background.png"); */
   background-repeat: no-repeat;
   margin: 0px;
   padding: 0px;
