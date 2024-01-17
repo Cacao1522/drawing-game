@@ -55,27 +55,10 @@ export default function Page() {
           {movingText}
         </div>
       </div> */}
-
-//         <label>
-//           入力してください :
-//           <input
-//             id="inputText"
-//             type="text"
-//             size="20"
-//             className={styles.inputText}
-//             value={inputText}
-//             onChange={(e) => {
-//               setInputText(e.target.value);
-//             }}
-//           />
-//         </label>
-//         <button onClick={answer}>解答する</button>
-//         <span className={styles.ok}>{ok}</span>
       </div>
       <div className={styles.blank} />
       {/* <div className={styles.background_lower}></div>
       <div className={styles.background_upper}></div> */}
     </div>
-
   );
 }

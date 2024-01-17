@@ -5,7 +5,7 @@ import { doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { Stack, Button } from "@mui/material";
 import styles from "./WebRTC.module.css";
 import { items } from "./items";
-import { Display } from "phaser";
+//import { Display } from "phaser";
 
 class WebRTCDataChannelDemo extends React.Component {
   state = {
