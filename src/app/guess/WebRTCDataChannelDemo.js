@@ -13,7 +13,6 @@ import { doc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
 
 import styles from "./page.module.css";
 
-
 class WebRTCDataChannelDemo extends React.Component {
   state = {
     status: "closed",
@@ -175,8 +174,6 @@ class WebRTCDataChannelDemo extends React.Component {
     }
   };
 
-
-
   sendMessage = (event) => {
     event.preventDefault();
     const { message } = this.state;
@@ -189,13 +186,14 @@ class WebRTCDataChannelDemo extends React.Component {
     }
     if (this.dataChannel) {
       this.dataChannel.send(message);
-      const { answerMessage} = this.state;
+      const { answerMessage } = this.state;
       console.log("送信:", message);
       console.log("答え:", answerMessage);
       if (answerMessage === message) {
         this.setState((prevState) => ({
           history: `正解! \n${prevState.history}`,
         }));
+        this.dataChannel.send("正解!");
       }
     }
     this.setState((prevState) => ({
@@ -270,7 +268,13 @@ class WebRTCDataChannelDemo extends React.Component {
           <input type="submit" value="Send" />
         </form>
         <div>
-          <textarea value={this.state.history} readOnly cols="80" rows="10" />
+          <textarea
+            value={this.state.history}
+            readOnly
+            cols="80"
+            rows="10"
+            className={styles.answer}
+          />
         </div>
         <canvas
           ref={this.canvasRef}

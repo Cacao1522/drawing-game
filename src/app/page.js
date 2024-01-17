@@ -9,22 +9,21 @@ import { usePathname, useSearchParams } from "next/navigation";
 import styles from "./page.module.css";
 
 export default function Home() {
-
   // ページ移動を検知
   const pathname = usePathname();
   const searchParams = useSearchParams();
   useEffect(() => {
     updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
   }, [pathname, searchParams]);
-//   return (
-//     <>
-//       <p>
-//         <Link href={"draw"}>ゲームスタート（絵を描く）</Link>
-//       </p>
-//       <p>
-//         <Link href={"guess"}>ゲームスタート（絵のお題を当てる）</Link>
-//       </p>
-//     </>
+  //   return (
+  //     <>
+  //       <p>
+  //         <Link href={"draw"}>ゲームスタート（絵を描く）</Link>
+  //       </p>
+  //       <p>
+  //         <Link href={"guess"}>ゲームスタート（絵のお題を当てる）</Link>
+  //       </p>
+  //     </>
 
   function OpenDraw() {
     window.location.href = "/draw";
@@ -33,32 +32,30 @@ export default function Home() {
     window.location.href = "/guess";
   }
   return (
-    <body className={styles.body}>
-      <div>
+    <body>
+      <div className={styles.body}>
         <div className={styles.header}>
           {/* <Image
-            src="/header.png" // publicディレクトリからの相対パス
-            width={1536}
-            height={192}
-            sizes="100vw"
-            style={{
-              width: '100%',
-              height: 'auto',
-            }}
-          /> */}
+          src="/images/header.png" // publicディレクトリからの相対パス
+          width={1536}
+          height={192}
+          sizes="100vw"
+          style={{
+            width: "100%",
+            height: "auto",
+          }}
+        /> */}
         </div>
         <div className={styles.video_button_draw} onClick={OpenDraw}>
-          <video autoPlay muted >
-            <source src="/movies/button_draw.mp4" type="video/mp4">
-            </source>
+          <video autoPlay muted>
+            <source src="/movies/button_draw.mp4" type="video/mp4"></source>
           </video>
         </div>
         <div className={styles.video_button_guess} onClick={OpenGuess}>
           <video autoPlay muted>
-            <source src="/movies/button_guess.mp4" type="video/mp4">
-            </source>
+            <source src="/movies/button_guess.mp4" type="video/mp4"></source>
           </video>
-        </div>  
+        </div>
         <div className={styles.footer}>
           {/* <Image
             src="/footer.png" // publicディレクトリからの相対パス
@@ -72,7 +69,6 @@ export default function Home() {
           /> */}
         </div>
       </div>
-    </body >
-
+    </body>
   );
 }

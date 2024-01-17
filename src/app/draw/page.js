@@ -10,7 +10,7 @@ import { db } from "../../../fire";
 import { doc, setDoc, updateDoc, onSnapshot } from "firebase/firestore";
 
 export default function Page() {
-  const width = 800;
+  const width = 1000;
   const height = 500;
   let canvasRef = useRef(null);
   let mouseX = null;
@@ -34,6 +34,7 @@ export default function Page() {
   const [isLimited, setIsLimited] = useState(false);
   const [ink, setInk] = useState(3000);
   const [isAble, setIsAble] = useState(true);
+  const [isAllowLink, setIsAllowLink] = useState(true);
   let inkcount = 0;
   const getContext = () => {
     const canvas = canvasRef.current;
@@ -255,123 +256,122 @@ export default function Page() {
     return canvasRef.current.toDataURL();
   };
 
-  useEffect(() => {
-    const handleBeforeUnload = (event) => {
-      // ページが閉じられる前に実行したい処理
-      updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, []);
-
   return (
-    <>
-      <div className={styles.background_lower}></div>
-      <div className={styles.background_upper}></div>
-      <p>
-        <Link href={"/"}>トップページ</Link>
-      </p>
-      <div className="App">
-        <WebRTCDataChannelDemo getCanvasData={getCanvasData} />
-      </div>
+    <div className={styles.all}>
+      {/* <div className={styles.background_lower}></div>
+      <div className={styles.background_upper}></div> */}
+      <div className={styles.blank} />
+      <div className={styles.main}>
+        {isAllowLink ? (
+          <p>
+            <Link href={"/"}>トップページ</Link>
+          </p>
+        ) : (
+          <p>　</p>
+        )}
 
-      <canvas
-        onMouseDown={OnClick}
-        onMouseMove={OnMove}
-        onMouseUp={DrawEnd}
-        onMouseOut={DrawEnd}
-        onTouchStart={OnClick}
-        // onTouchStart={() => {
-        //   OnClick();
-        //   OnMove();
-        // }}
-        onTouchMove={OnMove}
-        onTouchEnd={DrawEnd}
-        onTouchCancel={DrawEnd}
-        ref={canvasRef}
-        width={`${width}px`}
-        height={`${height}px`}
-        className={styles.wrapper}
-      />
-      <Stack direction="row" spacing={3}>
-        <span>ペンの太さ</span>
-        <Slider
-          defaultValue={7}
-          aria-label="Default"
-          value={brushWidth}
-          valueLabelDisplay="auto"
-          min={1}
-          max={50}
-          sx={{ width: "50%" }}
-          onChange={(e) => {
-            setBrushWidth(e.target.value);
-          }}
+        <div className="App">
+          <WebRTCDataChannelDemo
+            getCanvasData={getCanvasData}
+            isAllow={setIsAllowLink}
+          />
+        </div>
+
+        <canvas
+          onMouseDown={OnClick}
+          onMouseMove={OnMove}
+          onMouseUp={DrawEnd}
+          onMouseOut={DrawEnd}
+          onTouchStart={OnClick}
+          // onTouchStart={() => {
+          //   OnClick();
+          //   OnMove();
+          // }}
+          onTouchMove={OnMove}
+          onTouchEnd={DrawEnd}
+          onTouchCancel={DrawEnd}
+          ref={canvasRef}
+          width={`${width}px`}
+          height={`${height}px`}
+          className={styles.wrapper}
         />
-      </Stack>
-      <label>
-        ペンの色
-        <input
-          className={styles.color}
-          type="color"
-          value={brushColor}
-          onChange={(e) => {
-            setBrushColor(e.target.value);
-          }}
-        />
-      </label>
-      <div className={styles.buttons}>
-        <Button variant="outlined" onClick={Reset} className={styles.button}>
-          全消去
-        </Button>
-        <Button variant="outlined" onClick={undo} className={styles.button}>
-          戻す
-        </Button>
-        <Button variant="outlined" onClick={redo} className={styles.button}>
-          進める
-        </Button>
+        <Stack direction="row" spacing={3}>
+          <span>ペンの太さ</span>
+          <Slider
+            defaultValue={7}
+            aria-label="Default"
+            value={brushWidth}
+            valueLabelDisplay="auto"
+            min={1}
+            max={50}
+            sx={{ width: "50%" }}
+            onChange={(e) => {
+              setBrushWidth(e.target.value);
+            }}
+          />
+        </Stack>
+        <label>
+          ペンの色
+          <input
+            className={styles.color}
+            type="color"
+            value={brushColor}
+            onChange={(e) => {
+              setBrushColor(e.target.value);
+            }}
+          />
+        </label>
+        <div className={styles.buttons}>
+          <Button variant="outlined" onClick={Reset} className={styles.button}>
+            全消去
+          </Button>
+          <Button variant="outlined" onClick={undo} className={styles.button}>
+            戻す
+          </Button>
+          <Button variant="outlined" onClick={redo} className={styles.button}>
+            進める
+          </Button>
+        </div>
+        <div className={styles.buttons}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setIsDisappear((prev) => !prev);
+            }}
+            className={styles.button}
+          >
+            虫食い{isDisappear ? "あり" : "なし"}
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setIsOneStroke((prev) => !prev);
+            }}
+            className={styles.button}
+          >
+            一筆書き{isOneStroke ? "あり" : "なし"}
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setIsLimited((prev) => !prev);
+            }}
+            className={styles.button}
+          >
+            限られたインク{isLimited ? "あり" : "なし"}
+          </Button>
+          <Slider
+            //defaultValue={0}
+            aria-label="Default"
+            value={ink}
+            valueLabelDisplay="auto"
+            min={0}
+            max={3000}
+            sx={{ width: "30%" }}
+          />
+        </div>
       </div>
-      <div className={styles.buttons}>
-        <Button
-          variant="outlined"
-          onClick={() => {
-            setIsDisappear((prev) => !prev);
-          }}
-          className={styles.button}
-        >
-          虫食い{isDisappear ? "あり" : "なし"}
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={() => {
-            setIsOneStroke((prev) => !prev);
-          }}
-          className={styles.button}
-        >
-          一筆書き{isOneStroke ? "あり" : "なし"}
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={() => {
-            setIsLimited((prev) => !prev);
-          }}
-          className={styles.button}
-        >
-          限られたインク{isLimited ? "あり" : "なし"}
-        </Button>
-        <Slider
-          //defaultValue={0}
-          aria-label="Default"
-          value={ink}
-          valueLabelDisplay="auto"
-          min={0}
-          max={3000}
-          sx={{ width: "30%" }}
-        />
-      </div>
-    </>
+      <div className={styles.blank} />
+    </div>
   );
 }

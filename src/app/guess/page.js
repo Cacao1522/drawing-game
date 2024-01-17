@@ -7,7 +7,6 @@ import { items } from "./items";
 import WebRTCDataChannelDemo from "./WebRTCDataChannelDemo";
 
 export default function Page() {
-
   const movingTextRef = useRef(null);
   const [inputText, setInputText] = useState("");
   const [movingText, setMovingText] = useState("");
@@ -42,37 +41,41 @@ export default function Page() {
   }
 
   return (
-    <>
-      <p>
-        <Link href={"/"}>トップページ</Link>
-      </p>{" "}
-      <div className="App">
-        <WebRTCDataChannelDemo/>
-      </div>
-      {/* <div className={styles.animationContainer}>
+    <div className={styles.all}>
+      <div className={styles.blank} />
+      <div className={styles.main}>
+        <p>
+          <Link href={"/"}>トップページ</Link>
+        </p>{" "}
+        <div className="App">
+          <WebRTCDataChannelDemo />
+        </div>
+        {/* <div className={styles.animationContainer}>
         <div ref={movingTextRef} className={styles.movingText}>
           {movingText}
         </div>
       </div> */}
-      <label>
-        入力してください :
-        <input
-          id="inputText"
-          type="text"
-          size="20"
-          className={styles.inputText}
-          value={inputText}
-          onChange={(e) => {
-            setInputText(e.target.value);
-          }}
-        />
-      </label>
-      <button onClick={answer}>解答する</button>
-      <span className={styles.ok}>{ok}</span>
-      <div className={styles.background_lower}>
+
+//         <label>
+//           入力してください :
+//           <input
+//             id="inputText"
+//             type="text"
+//             size="20"
+//             className={styles.inputText}
+//             value={inputText}
+//             onChange={(e) => {
+//               setInputText(e.target.value);
+//             }}
+//           />
+//         </label>
+//         <button onClick={answer}>解答する</button>
+//         <span className={styles.ok}>{ok}</span>
       </div>
-      <div className={styles.background_upper}>
-      </div>
-    </>
+      <div className={styles.blank} />
+      {/* <div className={styles.background_lower}></div>
+      <div className={styles.background_upper}></div> */}
+    </div>
+
   );
 }

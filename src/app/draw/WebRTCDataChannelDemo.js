@@ -3,8 +3,9 @@ import React from "react";
 import { db } from "../../../fire";
 import { doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { Stack, Button } from "@mui/material";
-// import styles from "./WebRTC.module.css";
+import styles from "./WebRTC.module.css";
 import { items } from "./items";
+import { Display } from "phaser";
 
 class WebRTCDataChannelDemo extends React.Component {
   state = {
@@ -13,7 +14,7 @@ class WebRTCDataChannelDemo extends React.Component {
     remoteSDP: "",
     history: "",
     random: null,
-    theme: "", 
+    theme: "",
   };
 
   peerConnectionConfig = {
@@ -23,10 +24,14 @@ class WebRTCDataChannelDemo extends React.Component {
   peerConnection = null;
   dataChannel = null;
   unSubscribeRemote = null;
-
+  handleBeforeUnload = (event) => {
+    // ページが閉じられる前に実行したい処理
+    updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
+  };
   componentDidMount() {
     this.setState({ status: "closed" });
   }
+
   receiveAnswerSDP() {
     this.unSubscribeRemote = onSnapshot(
       doc(db, "room1", "remoteSDP"),
@@ -40,9 +45,10 @@ class WebRTCDataChannelDemo extends React.Component {
     if (this.unSubscribeRemote) {
       this.unSubscribeRemote();
     }
-    if (this.localSDP) {
-      updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
-    }
+    // if (this.localSDP) {
+    //   updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
+    // }
+    window.removeEventListener("beforeunload", this.handleBeforeUnload);
   }
   createPeerConnection = () => {
     const pc = new RTCPeerConnection(this.peerConnectionConfig);
@@ -57,6 +63,8 @@ class WebRTCDataChannelDemo extends React.Component {
           status: "Vanilla ICE ready",
         });
         const local = { offer: pc.localDescription.sdp };
+        window.addEventListener("beforeunload", this.handleBeforeUnload);
+        this.props.isAllow(false);
         await updateDoc(doc(db, "room1", "localSDP"), local);
       }
     };
@@ -134,6 +142,7 @@ class WebRTCDataChannelDemo extends React.Component {
     const sdptext = SDP;
     updateDoc(doc(db, "room1", "localSDP"), { offer: "" });
     updateDoc(doc(db, "room1", "remoteSDP"), { answer: "" });
+    this.props.isAllow(true);
     const sdpType = this.peerConnection ? "answer" : "offer";
     const sdp = new RTCSessionDescription({
       type: sdpType,
@@ -230,7 +239,6 @@ class WebRTCDataChannelDemo extends React.Component {
     const message = JSON.stringify({ type: "text", data: items[r] });
     console.log(message);
     this.dataChannel.send(message);
-
   };
   render() {
     return (
@@ -273,10 +281,26 @@ class WebRTCDataChannelDemo extends React.Component {
         </button>*/}
 
         <div>
-          <textarea value={this.state.history} readOnly cols="80" rows="10" />
+          <textarea
+            value={this.state.history}
+            readOnly
+            cols="80"
+            rows="10"
+            className={styles.answer}
+          />
         </div>
-        <button onClick={this.createAnswer}>問題を作る</button>
-        <p>お題：{this.state.theme}</p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginRight: "10px",
+          }}
+        >
+          <button onClick={this.createAnswer} style={{ marginRight: "10px" }}>
+            問題を作る
+          </button>
+          <p>お題：　　　　{this.state.theme}</p>
+        </div>
       </div>
     );
   }
