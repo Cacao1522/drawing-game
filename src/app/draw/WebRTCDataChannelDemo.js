@@ -5,6 +5,7 @@ import { doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { Stack, Button } from "@mui/material";
 // import styles from "./WebRTC.module.css";
 import { items } from "./items";
+import { Display } from "phaser";
 
 class WebRTCDataChannelDemo extends React.Component {
   state = {
@@ -282,7 +283,9 @@ class WebRTCDataChannelDemo extends React.Component {
         <div>
           <textarea value={this.state.history} readOnly cols="80" rows="10" />
         </div>
+        <div>
         <button onClick={this.createAnswer}>問題を作る</button>
+        </div>
         <p>お題：{this.state.theme}</p>
       </div>
     );

@@ -54,7 +54,7 @@ export default function Page() {
           {movingText}
         </div>
       </div> */}
-      <label>
+      {/* <label>
         入力してください :
         <input
           id="inputText"
@@ -72,7 +72,7 @@ export default function Page() {
       <div className={styles.background_lower}>
       </div>
       <div className={styles.background_upper}>
-      </div>
+      </div> */}
     </>
   );
 }
