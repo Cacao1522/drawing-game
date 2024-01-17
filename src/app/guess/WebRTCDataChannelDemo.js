@@ -196,6 +196,7 @@ class WebRTCDataChannelDemo extends React.Component {
         this.setState((prevState) => ({
           history: `正解! \n${prevState.history}`,
         }));
+        this.dataChannel.send("正解!");
       }
     }
     this.setState((prevState) => ({
