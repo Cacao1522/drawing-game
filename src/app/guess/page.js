@@ -54,7 +54,9 @@ export default function Page() {
         <div ref={movingTextRef} className={styles.movingText}>
           {movingText}
         </div>
+
         </div> */}
+
       </div>
       <div className={styles.blank} />
       {/* <div className={styles.background_lower}></div>
