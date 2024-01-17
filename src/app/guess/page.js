@@ -44,7 +44,7 @@ export default function Page() {
     <div className={styles.all}>
       <div className={styles.blank} />
       <div className={styles.main}>
-        <p>
+        <p style={{margin:"0"}}>
           <Link href={"/"}>トップページ</Link>
         </p>{" "}
         <div className="App">
@@ -54,7 +54,9 @@ export default function Page() {
         <div ref={movingTextRef} className={styles.movingText}>
           {movingText}
         </div>
-      </div> */}
+
+        </div> */}
+
       </div>
       <div className={styles.blank} />
       {/* <div className={styles.background_lower}></div>

@@ -263,11 +263,11 @@ export default function Page() {
       <div className={styles.blank} />
       <div className={styles.main}>
         {isAllowLink ? (
-          <p>
+          <p style={{ margin: "0" }}>
             <Link href={"/"}>トップページ</Link>
           </p>
         ) : (
-          <p>　</p>
+          <p style={{ margin: "0" }}>　</p>
         )}
 
         <div className="App">

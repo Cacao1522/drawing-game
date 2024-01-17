@@ -272,7 +272,7 @@ class WebRTCDataChannelDemo extends React.Component {
             value={this.state.history}
             readOnly
             cols="80"
-            rows="10"
+            rows="5"
             className={styles.answer}
           />
         </div>
