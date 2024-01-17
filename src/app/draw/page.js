@@ -260,7 +260,7 @@ export default function Page() {
     <div className={styles.all}>
       {/* <div className={styles.background_lower}></div>
       <div className={styles.background_upper}></div> */}
-      <div className={styles.blank} />
+      {/* <div className={styles.blank} /> */}
       <div className={styles.main}>
         {isAllowLink ? (
           <p style={{ margin: "0" }}>
@@ -371,7 +371,7 @@ export default function Page() {
           />
         </div>
       </div>
-      <div className={styles.blank} />
+      {/* <div className={styles.blank} /> */}
     </div>
   );
 }
