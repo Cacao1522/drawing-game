@@ -3,7 +3,7 @@ import React from "react";
 import { db } from "../../../fire";
 import { doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { Stack, Button } from "@mui/material";
-// import styles from "./WebRTC.module.css";
+import styles from "./WebRTC.module.css";
 import { items } from "./items";
 
 class WebRTCDataChannelDemo extends React.Component {
@@ -280,7 +280,13 @@ class WebRTCDataChannelDemo extends React.Component {
         </button>*/}
 
         <div>
-          <textarea value={this.state.history} readOnly cols="80" rows="10" />
+          <textarea
+            value={this.state.history}
+            readOnly
+            cols="80"
+            rows="10"
+            className={styles.answer}
+          />
         </div>
         <button onClick={this.createAnswer}>問題を作る</button>
         <p>お題：{this.state.theme}</p>
