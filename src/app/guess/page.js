@@ -55,8 +55,7 @@ export default function Page() {
           {movingText}
         </div>
       </div> */}
-
-//         <label>
+        {/* //         <label>
 //           入力してください :
 //           <input
 //             id="inputText"
@@ -70,12 +69,11 @@ export default function Page() {
 //           />
 //         </label>
 //         <button onClick={answer}>解答する</button>
-//         <span className={styles.ok}>{ok}</span>
+//         <span className={styles.ok}>{ok}</span> */}
       </div>
       <div className={styles.blank} />
       {/* <div className={styles.background_lower}></div>
       <div className={styles.background_upper}></div> */}
     </div>
-
   );
 }
