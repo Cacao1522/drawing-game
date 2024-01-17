@@ -243,17 +243,25 @@ class WebRTCDataChannelDemo extends React.Component {
   render() {
     return (
       <div>
-        <Button
-          variant="outlined"
-          onClick={() => {
-            this.startPeerConnection();
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            marginRight: "10px",
           }}
         >
-          接続
-        </Button>
-        <p>
-          状態: <input type="text" value={this.state.status} readOnly />
-        </p>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              this.startPeerConnection();
+            }}
+          >
+            接続
+          </Button>
+          <p style={{ margin: "0" }}>
+            状態: <input type="text" value={this.state.status} readOnly />
+          </p>
+        </div>
         {/* <div>
           <p>(手順1)Start を押し，SDP (offer) を生成する。</p>
           <button type="button" onClick={() => this.startPeerConnection()}>
@@ -285,7 +293,7 @@ class WebRTCDataChannelDemo extends React.Component {
             value={this.state.history}
             readOnly
             cols="80"
-            rows="10"
+            rows="5"
             className={styles.answer}
           />
         </div>
