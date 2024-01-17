@@ -1,5 +1,7 @@
 .canvas {
   border: 1px solid #000;
+  max-width: 100%;
+  min-height: 250px;
 }
 
 .animationContainer {
@@ -56,4 +58,25 @@
   top: 0px;
   left: 0px;
   z-index: -9;
+}
+.answer {
+  max-width: 100%;
+}
+.blank {
+  flex: 2;
+  background-image: url("/images/background.png");
+}
+.main {
+  flex: 6;
+  max-width: 100%;
+  /* margin: 0 10%; */
+}
+@media (min-width: 630px) {
+  .main {
+    margin: 0 5%;
+  }
+}
+.all {
+  display: flex;
+  height: 100vh;
 }

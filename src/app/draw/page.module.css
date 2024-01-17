@@ -1,10 +1,12 @@
-.main {
+/* .main {
   display: flex;
-}
+} */
 
 .wrapper {
   border: 1px solid #000;
   touch-action: pinch-zoom;
+  max-width: 100%;
+  min-height: 300px;
 }
 .buttons {
   display: flex;
@@ -38,4 +40,22 @@
   top: 0px;
   left: 0px;
   z-index: -9;
+}
+.blank {
+  flex: 2;
+  background-image: url("/images/background.png");
+}
+.main {
+  flex: 6;
+  max-width: 100%;
+  /* margin: 0 10%; */
+}
+@media (min-width: 630px) {
+  .main {
+    margin: 0 5%;
+  }
+}
+.all {
+  display: flex;
+  height: 100vh;
 }
